@@ -136,12 +136,12 @@
                 v-model.number="targetPercentage"
                 type="number"
                 class="w-full px-3 py-2 border rounded-lg"
-                min="0"
-                max="100"
-                step="1"
+                :min="changeMode === 'continuous' ? 0.01 : 0"
+                :max="changeMode === 'continuous' ? 99.99 : 100"
+                step="0.01"
               />
               <p class="text-xs text-gray-500 mt-1">
-                Percentage of system volume to replace
+                {{ changeMode === 'continuous' ? 'Percentage of system volume to replace (0.01-99.99%)' : 'Percentage of system volume to replace' }}
               </p>
             </div>
             <div class="text-sm text-gray-600 bg-gray-50 p-2 rounded">
@@ -163,12 +163,12 @@
                   v-model.number="targetPercentage"
                   type="number"
                   class="w-full px-3 py-2 border rounded-lg"
-                  min="0"
-                  max="100"
-                  step="1"
+                  min="0.01"
+                  max="99.99"
+                  step="0.01"
                 />
                 <p class="text-xs text-gray-500 mt-1">
-                  Percentage of system volume for continuous change
+                  Percentage of system volume for continuous change (0.01-99.99%)
                 </p>
               </div>
               <div class="text-sm text-gray-600 bg-gray-50 p-2 rounded">

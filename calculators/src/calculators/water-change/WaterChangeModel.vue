@@ -420,19 +420,19 @@
     </CardSection>
 
     <!-- Graphs -->
-    <CardSection title="Reservoir Levels Over Time">
+    <CardSection title="Reservoir Levels Over Time" collapsible>
       <WaterChangeChart :data="graphData" chart-type="line" :volume-unit="displayUnit" />
     </CardSection>
 
-    <CardSection title="Water Composition Over Time">
+    <CardSection title="Water Composition Over Time" collapsible>
       <WaterChangeChart :data="graphData" chart-type="area" :volume-unit="displayUnit" />
     </CardSection>
 
-    <CardSection title="Water Composition Percentage">
+    <CardSection title="Water Composition Percentage" collapsible>
       <WaterChangeChart :data="graphData" chart-type="area-percent" :volume-unit="displayUnit" />
     </CardSection>
 
-    <CardSection v-if="parameterTracking.enabled" :title="parameterTracking.name + ' Over Time'">
+    <CardSection v-if="parameterTracking.enabled" :title="parameterTracking.name + ' Over Time'" collapsible>
       <GenericChart :datasets="parameterDatasets" :options="parameterChartOptions" chart-type="line" />
     </CardSection>
 

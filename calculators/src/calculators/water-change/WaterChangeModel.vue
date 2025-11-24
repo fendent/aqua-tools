@@ -421,19 +421,67 @@
 
     <!-- Graphs -->
     <CardSection title="Reservoir Levels Over Time" collapsible>
-      <WaterChangeChart :data="graphData" chart-type="line" :volume-unit="displayUnit" />
+      <template #header-actions>
+        <button
+          @click.stop="downloadChartImage('reservoir', 'reservoir-levels.png')"
+          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5"
+          title="Download chart as PNG"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download
+        </button>
+      </template>
+      <WaterChangeChart ref="reservoirChartRef" :data="graphData" chart-type="line" :volume-unit="displayUnit" />
     </CardSection>
 
     <CardSection title="Water Composition Over Time" collapsible>
-      <WaterChangeChart :data="graphData" chart-type="area" :volume-unit="displayUnit" />
+      <template #header-actions>
+        <button
+          @click.stop="downloadChartImage('composition', 'water-composition.png')"
+          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5"
+          title="Download chart as PNG"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download
+        </button>
+      </template>
+      <WaterChangeChart ref="compositionChartRef" :data="graphData" chart-type="area" :volume-unit="displayUnit" />
     </CardSection>
 
     <CardSection title="Water Composition Percentage" collapsible>
-      <WaterChangeChart :data="graphData" chart-type="area-percent" :volume-unit="displayUnit" />
+      <template #header-actions>
+        <button
+          @click.stop="downloadChartImage('percent', 'water-composition-percent.png')"
+          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5"
+          title="Download chart as PNG"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download
+        </button>
+      </template>
+      <WaterChangeChart ref="percentChartRef" :data="graphData" chart-type="area-percent" :volume-unit="displayUnit" />
     </CardSection>
 
     <CardSection v-if="parameterTracking.enabled" :title="parameterTracking.name + ' Over Time'" collapsible>
-      <GenericChart :datasets="parameterDatasets" :options="parameterChartOptions" chart-type="line" />
+      <template #header-actions>
+        <button
+          @click.stop="downloadChartImage('parameter', 'parameter-tracking.png')"
+          class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors flex items-center gap-1.5"
+          title="Download chart as PNG"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download
+        </button>
+      </template>
+      <GenericChart ref="parameterChartRef" :datasets="parameterDatasets" :options="parameterChartOptions" chart-type="line" />
     </CardSection>
 
     <!-- Usage Notes -->
@@ -549,7 +597,27 @@ const parameterTracking = ref(settings.parameterTracking || DEFAULTS.parameterTr
 
 const pendingUnitsChange = ref('')
 
+const reservoirChartRef = ref(null)
+const compositionChartRef = ref(null)
+const percentChartRef = ref(null)
+const parameterChartRef = ref(null)
+
 const displayUnit = computed(() => systemVolumeUnit.value)
+
+const downloadChartImage = (refName, filename) => {
+  const chartRefMap = {
+    reservoir: reservoirChartRef,
+    composition: compositionChartRef,
+    percent: percentChartRef,
+    parameter: parameterChartRef
+  }
+
+  const chartRef = chartRefMap[refName]
+
+  if (chartRef?.value && typeof chartRef.value.downloadChart === 'function') {
+    chartRef.value.downloadChart(filename)
+  }
+}
 
 // Conversion rates to milliliters (base unit)
 const toMilliliters = (value, unit) => {
@@ -1026,6 +1094,33 @@ const parameterDatasets = computed(() => {
   }]
 })
 
+const formatTimeValue = (value, timeLabel) => {
+  if (timeLabel === 'Days') {
+    const days = Math.floor(value)
+    const hours = Math.round((value - days) * 24)
+    if (days === 0) {
+      return `${hours}h`
+    } else if (hours === 0) {
+      return `${days}d`
+    } else {
+      return `${days}d ${hours}h`
+    }
+  } else if (timeLabel === 'Weeks') {
+    const weeks = Math.floor(value)
+    const days = Math.round((value - weeks) * 7)
+    if (weeks === 0) {
+      return `${days}d`
+    } else if (days === 0) {
+      return `${weeks}w`
+    } else {
+      return `${weeks}w ${days}d`
+    }
+  } else if (timeLabel === 'Hours') {
+    return `${value.toFixed(1)}h`
+  }
+  return value.toString()
+}
+
 const parameterChartOptions = computed(() => {
   const timeLabel = graphData.value[0]?.timeLabel || 'Time'
 
@@ -1053,6 +1148,21 @@ const parameterChartOptions = computed(() => {
         title: {
           display: true,
           text: `${parameterTracking.value.name} (${parameterTracking.value.unit})`
+        }
+      }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          title: function(context) {
+            const value = context[0].parsed.x
+            return formatTimeValue(value, timeLabel)
+          },
+          label: function(context) {
+            const label = context.dataset.label || ''
+            const value = context.parsed.y
+            return `${label}: ${value.toFixed(2)}`
+          }
         }
       }
     }

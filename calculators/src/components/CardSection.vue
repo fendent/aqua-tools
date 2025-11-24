@@ -18,7 +18,9 @@
         </svg>
         <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
       </div>
-      <slot name="header-actions" />
+      <div class="flex items-center gap-2">
+        <slot name="header-actions" />
+      </div>
     </div>
     <div
       v-show="!isCollapsed"

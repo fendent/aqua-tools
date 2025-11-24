@@ -5,7 +5,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, defineExpose } from 'vue'
 import {
   Chart,
   LineController,
@@ -116,12 +116,46 @@ onMounted(() => {
   window.addEventListener('resize', handleResize)
 })
 
+const downloadChart = (filename = 'chart.png') => {
+  if (!chartInstance || !chartCanvas.value) return
+
+  const canvas = chartCanvas.value
+
+  // Create a temporary canvas with white background
+  const tempCanvas = document.createElement('canvas')
+  tempCanvas.width = canvas.width
+  tempCanvas.height = canvas.height
+  const tempCtx = tempCanvas.getContext('2d')
+
+  // Fill with white background
+  tempCtx.fillStyle = '#ffffff'
+  tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height)
+
+  // Draw the chart on top
+  tempCtx.drawImage(canvas, 0, 0)
+
+  // Convert to blob and download
+  tempCanvas.toBlob((blob) => {
+    if (!blob) return
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.download = filename
+    link.href = url
+    link.click()
+    URL.revokeObjectURL(url)
+  })
+}
+
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
   if (resizeTimeout) clearTimeout(resizeTimeout)
   if (chartInstance) {
     chartInstance.destroy()
   }
+})
+
+defineExpose({
+  downloadChart
 })
 </script>
 

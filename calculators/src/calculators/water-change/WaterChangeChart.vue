@@ -1,6 +1,7 @@
 <template>
   <div class="water-change-chart">
     <GenericChart
+      ref="chartRef"
       :datasets="currentDatasets"
       :options="currentOptions"
       chart-type="line"
@@ -9,8 +10,10 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, defineExpose } from 'vue'
 import GenericChart from '../../components/GenericChart.vue'
+
+const chartRef = ref(null)
 
 const props = defineProps({
   data: {
@@ -114,6 +117,33 @@ const currentDatasets = computed(() => {
   return []
 })
 
+const formatTimeValue = (value, timeLabel) => {
+  if (timeLabel === 'Days') {
+    const days = Math.floor(value)
+    const hours = Math.round((value - days) * 24)
+    if (days === 0) {
+      return `${hours}h`
+    } else if (hours === 0) {
+      return `${days}d`
+    } else {
+      return `${days}d ${hours}h`
+    }
+  } else if (timeLabel === 'Weeks') {
+    const weeks = Math.floor(value)
+    const days = Math.round((value - weeks) * 7)
+    if (weeks === 0) {
+      return `${days}d`
+    } else if (days === 0) {
+      return `${weeks}w`
+    } else {
+      return `${weeks}w ${days}d`
+    }
+  } else if (timeLabel === 'Hours') {
+    return `${value.toFixed(1)}h`
+  }
+  return value.toString()
+}
+
 const currentOptions = computed(() => {
   const timeLabel = props.data[0]?.timeLabel || 'Time'
 
@@ -147,8 +177,36 @@ const currentOptions = computed(() => {
           max: 100
         })
       }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          title: function(context) {
+            const value = context[0].parsed.x
+            return formatTimeValue(value, timeLabel)
+          },
+          label: function(context) {
+            const label = context.dataset.label || ''
+            const value = context.parsed.y
+            const formattedValue = props.chartType === 'area-percent'
+              ? `${value.toFixed(1)}%`
+              : `${value.toFixed(1)} ${getUnitLabel(props.volumeUnit)}`
+            return `${label}: ${formattedValue}`
+          }
+        }
+      }
     }
   }
+})
+
+const downloadChart = (filename) => {
+  if (chartRef.value) {
+    chartRef.value.downloadChart(filename)
+  }
+}
+
+defineExpose({
+  downloadChart
 })
 </script>
 

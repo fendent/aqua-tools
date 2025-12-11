@@ -37,7 +37,7 @@
               : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
           ]"
         >
-          {{ param.label }}
+          {{ getParameterLabel(key) }}
         </button>
       </div>
 
@@ -287,7 +287,15 @@
           <div class="text-sm text-blue-900">
             <p class="font-medium mb-1">What does this mean?</p>
             <p class="text-blue-800">
-              You're preparing a dosing solution by dissolving powder in water. Each time you dose, you'll add <strong>{{ doseVolume }}{{ doseVolumeUnit === 'milliliters' ? 'mL' : doseVolumeUnit }}</strong> of this solution to your <strong>{{ systemVolume }} {{ systemVolumeUnit }}</strong> tank, which will raise the parameter by <strong>{{ targetChange }} {{ targetChangeUnit }}</strong>. The calculator will tell you how much powder to dissolve to make <strong>{{ solutionVolume }}{{ solutionVolumeUnit === 'milliliters' ? 'mL' : solutionVolumeUnit }}</strong> of solution.
+              You're preparing a dosing solution by dissolving powder in water. Each time you dose,
+              you'll add <strong>{{ doseVolume }} {{ doseVolumeUnitAbbrev }}</strong> of this
+              solution to your <strong>{{ systemVolume }} {{ systemVolumeUnitSingular }}</strong> tank,
+
+              which will raise <strong>{{ currentParameterLabel }}</strong>
+              by <strong>{{ targetChange }} {{ targetChangeUnit }}</strong>.
+
+              The calculator will tell you how much powder to dissolve to make
+              <strong>{{ solutionVolume }} {{ solutionVolumeUnitAbbrev }}</strong> of solution.
             </p>
           </div>
         </div>
@@ -411,14 +419,16 @@
       </div>
     </CardSection>
 
-    <!-- Reset Button -->
-    <div class="text-center">
-      <button
-        @click="resetCalculator"
-        class="px-6 py-2 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-      >
-        Reset Calculator
-      </button>
+    <!-- Jim Welsh Mode -->
+    <div class="flex items-center justify-center pt-4">
+      <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+        <input
+          v-model="jimWelshMode"
+          type="checkbox"
+          class="w-3 h-3 rounded border-gray-300"
+        />
+        Jim Welsh Mode
+      </label>
     </div>
   </div>
 </template>
@@ -484,6 +494,7 @@ const doseVolumeUnit = ref(settings.doseVolumeUnit || 'milliliters')
 const solutionVolume = ref(settings.solutionVolume || 1000)
 const solutionVolumeUnit = ref(settings.solutionVolumeUnit || 'milliliters')
 const copyButtonText = ref('Copy Recipe')
+const jimWelshMode = ref(settings.jimWelshMode || false)
 
 const baseCompounds = computed(() => {
   if (!selectedParameter.value) return []
@@ -573,6 +584,54 @@ const formatRange = (range) => {
   return `${range.min}-${range.max}`
 }
 
+const systemVolumeUnitSingular = computed(() => {
+  const unitMap = {
+    'gallons': 'gallon',
+    'liters': 'liter',
+    'milliliters': 'milliliter',
+    'ouncesUS': 'ounce',
+    'ouncesUK': 'ounce'
+  }
+  return unitMap[systemVolumeUnit.value] || systemVolumeUnit.value
+})
+
+const getAbbreviatedUnit = (unit) => {
+  const unitMap = {
+    'gallons': 'gal',
+    'liters': 'L',
+    'milliliters': 'mL',
+    'ouncesUS': 'US fl oz',
+    'ouncesUK': 'UK fl oz'
+  }
+  return unitMap[unit] || unit
+}
+
+const doseVolumeUnitAbbrev = computed(() => getAbbreviatedUnit(doseVolumeUnit.value))
+const solutionVolumeUnitAbbrev = computed(() => getAbbreviatedUnit(solutionVolumeUnit.value))
+
+// Jim Welsh Mode: Pluralize all parameters
+const getParameterLabel = (paramKey) => {
+  const baseLabel = parameters[paramKey].label
+  if (!jimWelshMode.value) return baseLabel
+
+  // Pluralize with proper English rules
+  // Words ending in consonant + 'y' -> replace 'y' with 'ies'
+  if (baseLabel.endsWith('y')) {
+    const beforeY = baseLabel[baseLabel.length - 2]
+    const vowels = 'aeiouAEIOU'
+    if (!vowels.includes(beforeY)) {
+      return baseLabel.slice(0, -1) + 'ies'
+    }
+  }
+
+  // Default: just add 's'
+  return baseLabel + 's'
+}
+
+const currentParameterLabel = computed(() => {
+  if (!selectedParameter.value) return ''
+  return getParameterLabel(selectedParameter.value)
+})
 
 const copyToClipboard = async () => {
   const text = [
@@ -595,20 +654,6 @@ const copyToClipboard = async () => {
   }
 }
 
-const resetCalculator = () => {
-  selectedParameter.value = ''
-  selectedBaseCompound.value = ''
-  selectedFormId.value = ''
-  systemVolume.value = 100
-  systemVolumeUnit.value = 'gallons'
-  targetChange.value = 10
-  targetChangeUnit.value = 'ppm'
-  doseVolume.value = 1
-  doseVolumeUnit.value = 'milliliters'
-  solutionVolume.value = 1000
-  solutionVolumeUnit.value = 'milliliters'
-}
-
 // Save settings to localStorage
 const saveSettings = () => {
   try {
@@ -623,7 +668,8 @@ const saveSettings = () => {
       doseVolume: doseVolume.value,
       doseVolumeUnit: doseVolumeUnit.value,
       solutionVolume: solutionVolume.value,
-      solutionVolumeUnit: solutionVolumeUnit.value
+      solutionVolumeUnit: solutionVolumeUnit.value,
+      jimWelshMode: jimWelshMode.value
     }))
   } catch (error) {
     console.error('Failed to save settings:', error)
@@ -663,6 +709,7 @@ watch([
   doseVolume,
   doseVolumeUnit,
   solutionVolume,
-  solutionVolumeUnit
+  solutionVolumeUnit,
+  jimWelshMode
 ], saveSettings, { deep: true })
 </script>

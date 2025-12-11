@@ -167,30 +167,51 @@
       </div>
     </CardSection>
 
-    <!-- System Configuration -->
-    <CardSection title="3. System Configuration">
-      <div class="grid md:grid-cols-2 gap-4">
-        <VolumeInput
-          v-model="systemVolume"
-          v-model:unit="systemVolumeUnit"
-          label="Total System Volume"
-          :step="getVolumeStep(systemVolumeUnit)"
-          min="0.1"
-          :unit-select-props="{ labelFormat: 'abbrev' }"
-        />
-      </div>
-    </CardSection>
-
-    <!-- Dosing Configuration -->
-    <CardSection title="4. Dosing Configuration">
-      <div class="grid md:grid-cols-3 gap-4">
+    <!-- Configuration -->
+    <CardSection title="3. Configuration">
+      <div class="grid lg:grid-cols-3 gap-4 mb-4">
         <div>
-          <label class="block text-sm font-medium mb-2">Target Change per Dose</label>
-          <div class="grid grid-cols-[2fr_1fr] gap-2">
+          <label class="block text-sm font-medium mb-2 flex items-center gap-1">
+            System Volume
+            <span class="group relative">
+              <InformationCircleIcon class="w-4 h-4 text-gray-400 cursor-help" />
+              <span class="invisible group-hover:visible absolute left-0 top-6 w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
+                The total water volume of your aquarium system
+              </span>
+            </span>
+          </label>
+          <div class="grid grid-cols-[1fr_110px] gap-2">
+            <input
+              v-model.number="systemVolume"
+              type="number"
+              class="w-full px-3 py-2 border rounded-lg"
+              :step="getVolumeStep(systemVolumeUnit)"
+              min="0.1"
+            />
+            <VolumeUnitSelect
+              v-model="systemVolumeUnit"
+              label-format="abbrev"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-3 gap-4 mb-4">
+        <div>
+          <label class="block text-sm font-medium mb-2 flex items-center gap-1">
+            Target Change
+            <span class="group relative">
+              <InformationCircleIcon class="w-4 h-4 text-gray-400 cursor-help" />
+              <span class="invisible group-hover:visible absolute left-0 top-6 w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
+                How much you want to raise the parameter with each dose
+              </span>
+            </span>
+          </label>
+          <div class="grid grid-cols-[1fr_110px] gap-2">
             <input
               v-model.number="targetChange"
               type="number"
-              class="px-3 py-2 border rounded-lg"
+              class="w-full px-3 py-2 border rounded-lg"
               :step="getChangeStep()"
               min="0.001"
               :disabled="!selectedChemical"
@@ -200,34 +221,81 @@
               class="px-3 py-2 border rounded-lg text-sm"
               :disabled="!selectedChemical"
             >
-              <option value="ppm">{{ parameterInfo?.unit || 'ppm' }}</option>
+              <option v-if="parameterInfo?.unit === 'dKH'" value="dKH">dKH</option>
+              <option v-if="parameterInfo?.unit === 'dKH'" value="meq/L">meq/L</option>
+              <option v-if="parameterInfo?.unit === 'ppm'" value="ppm">ppm</option>
               <option v-if="parameterInfo?.unit === 'ppm'" value="ppt">ppt</option>
             </select>
           </div>
         </div>
 
-        <VolumeInput
-          v-model="doseVolume"
-          v-model:unit="doseVolumeUnit"
-          label="Dose Volume"
-          :step="getVolumeStep(doseVolumeUnit)"
-          min="0.001"
-          :unit-select-props="{ labelFormat: 'abbrev' }"
-        />
+        <div>
+          <label class="block text-sm font-medium mb-2 flex items-center gap-1">
+            Dose Volume
+            <span class="group relative">
+              <InformationCircleIcon class="w-4 h-4 text-gray-400 cursor-help" />
+              <span class="invisible group-hover:visible absolute left-0 top-6 w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
+                The amount of solution to add to your tank per dose
+              </span>
+            </span>
+          </label>
+          <div class="grid grid-cols-[1fr_110px] gap-2">
+            <input
+              v-model.number="doseVolume"
+              type="number"
+              class="w-full px-3 py-2 border rounded-lg"
+              :step="getVolumeStep(doseVolumeUnit)"
+              min="0.001"
+            />
+            <VolumeUnitSelect
+              v-model="doseVolumeUnit"
+              label-format="abbrev"
+            />
+          </div>
+        </div>
 
-        <VolumeInput
-          v-model="solutionVolume"
-          v-model:unit="solutionVolumeUnit"
-          label="Solution Volume to Prepare"
-          :step="getVolumeStep(solutionVolumeUnit)"
-          min="0.1"
-          :unit-select-props="{ labelFormat: 'abbrev' }"
-        />
+        <div>
+          <label class="block text-sm font-medium mb-2 flex items-center gap-1">
+            Solution Volume
+            <span class="group relative">
+              <InformationCircleIcon class="w-4 h-4 text-gray-400 cursor-help" />
+              <span class="invisible group-hover:visible absolute left-0 top-6 w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
+                The total amount of solution you want to prepare in advance
+              </span>
+            </span>
+          </label>
+          <div class="grid grid-cols-[1fr_110px] gap-2">
+            <input
+              v-model.number="solutionVolume"
+              type="number"
+              class="w-full px-3 py-2 border rounded-lg"
+              :step="getVolumeStep(solutionVolumeUnit)"
+              min="0.1"
+            />
+            <VolumeUnitSelect
+              v-model="solutionVolumeUnit"
+              label-format="abbrev"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuration Explanation -->
+      <div class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <div class="flex items-start gap-2">
+          <InformationCircleIcon class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div class="text-sm text-blue-900">
+            <p class="font-medium mb-1">What does this mean?</p>
+            <p class="text-blue-800">
+              You're preparing a dosing solution by dissolving powder in water. Each time you dose, you'll add <strong>{{ doseVolume }}{{ doseVolumeUnit === 'milliliters' ? 'mL' : doseVolumeUnit }}</strong> of this solution to your <strong>{{ systemVolume }} {{ systemVolumeUnit }}</strong> tank, which will raise the parameter by <strong>{{ targetChange }} {{ targetChangeUnit }}</strong>. The calculator will tell you how much powder to dissolve to make <strong>{{ solutionVolume }}{{ solutionVolumeUnit === 'milliliters' ? 'mL' : solutionVolumeUnit }}</strong> of solution.
+            </p>
+          </div>
+        </div>
       </div>
     </CardSection>
 
     <!-- Results -->
-    <CardSection title="5. Recipe & Instructions" :collapsible="false">
+    <CardSection title="4. Recipe & Instructions" :collapsible="false">
       <!-- No Results Message -->
       <div v-if="!calculationResults" class="text-center py-8 text-gray-500">
         <p>Complete the configuration above to see your recipe and instructions.</p>
@@ -288,15 +356,20 @@
 
       <!-- Instructions -->
       <div class="p-4 bg-gray-50 rounded-lg">
-        <h4 class="font-medium text-gray-900 mb-3">Preparation Instructions:</h4>
-        <ol class="space-y-2 text-sm text-gray-700">
-          <li v-for="(instruction, idx) in formattedInstructions" :key="idx" class="flex gap-2">
-            <span v-if="!instruction.startsWith('**') && !instruction.startsWith('-')" class="font-medium text-gray-500">{{ idx + 1 }}.</span>
-            <span :class="instruction.startsWith('**') ? 'font-medium mt-2' : ''">
+        <h4 class="text-base font-medium text-gray-900 mb-3">Preparation Instructions:</h4>
+        <div class="space-y-2 text-sm text-gray-700">
+          <div v-for="(instruction, idx) in formattedInstructions" :key="idx">
+            <div v-if="instruction.startsWith('**')" class="text-base font-medium text-gray-900 mb-3">
               {{ instruction.replace(/\*\*/g, '') }}
-            </span>
-          </li>
-        </ol>
+            </div>
+            <div v-else-if="instruction.startsWith('-')">
+              {{ instruction }}
+            </div>
+            <div v-else>
+              <span class="font-medium text-gray-500">{{ idx + 1 }}.</span> {{ instruction }}
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Copy/Export -->
@@ -353,7 +426,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import CardSection from '../../components/CardSection.vue'
-import VolumeInput from '../../components/VolumeInput.vue'
+import VolumeUnitSelect from '../../components/VolumeUnitSelect.vue'
 import StatCard from '../../components/StatCard.vue'
 import {
   ArrowTopRightOnSquareIcon,
@@ -439,14 +512,22 @@ const calculationResults = computed(() => {
   const doseVolumeML = toMilliliters(doseVolume.value, doseVolumeUnit.value)
   const solutionVolumeML = toMilliliters(solutionVolume.value, solutionVolumeUnit.value)
 
-  // Convert target change to ppm if in ppt
-  const targetChangePPM = targetChangeUnit.value === 'ppt'
-    ? targetChange.value * 1000
-    : targetChange.value
+  // Convert target change to base unit (dKH for alkalinity, ppm for others)
+  let targetChangeBase = targetChange.value
+
+  if (selectedParameter.value === DOSING_PARAMETERS.ALKALINITY) {
+    if (targetChangeUnit.value === 'meq/L') {
+      targetChangeBase = targetChange.value * 2.8039 // Convert meq/L to dKH
+    }
+  } else {
+    if (targetChangeUnit.value === 'ppt') {
+      targetChangeBase = targetChange.value * 1000 // Convert ppt to ppm
+    }
+  }
 
   const errors = validateInputs(
     systemVolume.value,
-    targetChangePPM,
+    targetChangeBase,
     doseVolumeML,
     solutionVolumeML
   )
@@ -456,7 +537,7 @@ const calculationResults = computed(() => {
   return calculatePowderAmount(
     systemVolume.value,
     systemVolumeUnit.value,
-    targetChangePPM,
+    targetChangeBase,
     doseVolumeML,
     selectedChemical.value,
     solutionVolumeML
@@ -473,7 +554,9 @@ const formattedInstructions = computed(() => {
     calculationResults.value,
     doseVolumeML,
     systemVolume.value,
-    systemVolumeUnit.value
+    systemVolumeUnit.value,
+    targetChangeUnit.value,
+    parameterInfo.value.unit
   )
 })
 
@@ -548,10 +631,21 @@ const saveSettings = () => {
 }
 
 // Reset selections when dependencies change
-watch(selectedParameter, () => {
+watch(selectedParameter, (newParam) => {
   selectedBaseCompound.value = ''
   selectedFormId.value = ''
-})
+  // Set targetChangeUnit to the parameter's base unit
+  if (newParam) {
+    const paramInfo = getParameterInfo(newParam)
+    // Only reset if current unit is invalid for this parameter
+    const validUnits = paramInfo.unit === 'dKH'
+      ? ['dKH', 'meq/L']
+      : ['ppm', 'ppt']
+    if (!validUnits.includes(targetChangeUnit.value)) {
+      targetChangeUnit.value = paramInfo.unit
+    }
+  }
+}, { immediate: true })
 
 watch(selectedBaseCompound, () => {
   selectedFormId.value = ''

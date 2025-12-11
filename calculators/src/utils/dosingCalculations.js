@@ -146,7 +146,7 @@ const checkForWarnings = (chemical, powderNeededG, solutionVolume, concentration
   if (powderNeededG < 0.1) {
     warnings.push({
       type: 'info',
-      message: `Very small amount of powder (${powderNeededG.toFixed(3)}g). Consider increasing solution volume or dose amount for easier measurement.`
+      message: `Very small amount of powder (${powderNeededG.toFixed(3)}g). Consider increasing solution volume or reducing dose amount for easier measurement.`
     })
   }
 
@@ -154,7 +154,7 @@ const checkForWarnings = (chemical, powderNeededG, solutionVolume, concentration
   if (powderNeededG > 500) {
     warnings.push({
       type: 'info',
-      message: `Large amount of powder needed (${powderNeededG.toFixed(1)}g). Consider reducing solution volume or dose size.`
+      message: `Large amount of powder needed (${powderNeededG.toFixed(1)}g). Consider reducing solution volume or increasing dose size.`
     })
   }
 
@@ -164,16 +164,22 @@ const checkForWarnings = (chemical, powderNeededG, solutionVolume, concentration
 /**
  * Format dosing instructions as human-readable text
  */
-export const formatDosingInstructions = (results, doseVolume, systemVolume, systemVolumeUnit) => {
+export const formatDosingInstructions = (results, doseVolume, systemVolume, systemVolumeUnit, userUnit, baseUnit) => {
   const instructions = []
 
+  // Convert changePerDose to user's selected unit if different from base unit
+  let changePerDose = results.changePerDose
+  if (baseUnit === 'dKH' && userUnit === 'meq/L') {
+    changePerDose = results.changePerDose / 2.8039 // Convert dKH to meq/L
+  }
+
   instructions.push(results.preparationInstruction)
-  instructions.push(`Total solution volume: ${(results.dosesInSolution * doseVolume / ML_PER_LITER).toFixed(2)}L (${(results.dosesInSolution * doseVolume / 29.5735).toFixed(1)} fl oz)`)
-  instructions.push(`**Dosing:**`)
-  instructions.push(`- Add ${doseVolume}mL per ${systemVolume} ${systemVolumeUnit}`)
-  instructions.push(`- This will raise the parameter by ${results.changePerDose.toFixed(3)} ppm`)
+  instructions.push(`Total solution volume: ${parseFloat((results.dosesInSolution * doseVolume / ML_PER_LITER).toFixed(2))}L (${parseFloat((results.dosesInSolution * doseVolume / 29.5735).toFixed(1))} fl oz)`)
+  instructions.push(`**Dosing Instructions:**`)
+  instructions.push(`- Add ${parseFloat(doseVolume.toFixed(2))}mL per ${systemVolume} ${systemVolumeUnit}`)
+  instructions.push(`- This will raise the parameter by ${parseFloat(changePerDose.toFixed(3))} ${userUnit}`)
   instructions.push(`- Solution provides ${results.dosesInSolution.toFixed(0)} total doses`)
-  instructions.push(`- Dose per gallon: ${results.dosePerGallon.toFixed(2)}mL/gal`)
+  instructions.push(`- Dose per gallon: ${parseFloat(results.dosePerGallon.toFixed(2))}mL/gal`)
 
   return instructions
 }

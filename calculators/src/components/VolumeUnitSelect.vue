@@ -43,6 +43,32 @@ const props = defineProps({
 
 defineEmits(['update:modelValue'])
 
+const UNIT_LABELS = {
+  full: {
+    gallons: 'Gallons (gal)',
+    ouncesUS: 'Fluid Ounces (US) (fl oz)',
+    ouncesUK: 'Fluid Ounces (UK) (fl oz)',
+    liters: 'Liters (L)',
+    milliliters: 'Milliliters (mL)'
+  },
+  short: {
+    gallons: 'Gallons',
+    ouncesUS: 'Fluid Ounces (US)',
+    ouncesUK: 'Fluid Ounces (UK)',
+    liters: 'Liters',
+    milliliters: 'Milliliters'
+  },
+  abbrev: {
+    gallons: 'gal',
+    ouncesUS: 'US fl oz',
+    ouncesUK: 'UK fl oz',
+    liters: 'L',
+    milliliters: 'mL'
+  }
+}
+
+const UNIT_VALUES = ['gallons', 'ouncesUS', 'ouncesUK', 'liters', 'milliliters']
+
 const options = computed(() => {
   const volumeUnits = []
 
@@ -50,31 +76,13 @@ const options = computed(() => {
     volumeUnits.push({ value: '', label: props.autoLabel })
   }
 
-  if (props.labelFormat === 'full') {
-    volumeUnits.push(
-      { value: 'gallons', label: 'Gallons (gal)' },
-      { value: 'ouncesUS', label: 'Fluid Ounces (US) (fl oz)' },
-      { value: 'ouncesUK', label: 'Fluid Ounces (UK) (fl oz)' },
-      { value: 'liters', label: 'Liters (L)' },
-      { value: 'milliliters', label: 'Milliliters (mL)' }
-    )
-  } else if (props.labelFormat === 'short') {
-    volumeUnits.push(
-      { value: 'gallons', label: 'Gallons' },
-      { value: 'ouncesUS', label: 'Fluid Ounces (US)' },
-      { value: 'ouncesUK', label: 'Fluid Ounces (UK)' },
-      { value: 'liters', label: 'Liters' },
-      { value: 'milliliters', label: 'Milliliters' }
-    )
-  } else {
-    volumeUnits.push(
-      { value: 'gallons', label: 'gal' },
-      { value: 'ouncesUS', label: 'US fl oz' },
-      { value: 'ouncesUK', label: 'UK fl oz' },
-      { value: 'liters', label: 'L' },
-      { value: 'milliliters', label: 'mL' }
-    )
-  }
+  const labels = UNIT_LABELS[props.labelFormat]
+  UNIT_VALUES.forEach(unitValue => {
+    volumeUnits.push({
+      value: unitValue,
+      label: labels[unitValue]
+    })
+  })
 
   return volumeUnits
 })

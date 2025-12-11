@@ -9,14 +9,15 @@
 
     <div class="grid md:grid-cols-2 gap-6">
       <router-link
-        to="/calculators/water-change"
+        v-for="calc in calculators"
+        :key="calc.id"
+        :to="calc.path"
         class="block p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-gray-200 hover:border-blue-300"
       >
-        <div class="text-4xl mb-4">💧</div>
-        <h2 class="text-2xl font-semibold text-gray-800 mb-2">Water Change Model</h2>
+        <div class="text-4xl mb-4">{{ calc.icon }}</div>
+        <h2 class="text-2xl font-semibold text-gray-800 mb-2">{{ calc.name }}</h2>
         <p class="text-gray-600">
-          Visualize continuous and interval water changes over time. Track supply/waste reservoirs
-          and see how old water gets replaced with new water.
+          {{ calc.description }}
         </p>
       </router-link>
 
@@ -24,9 +25,15 @@
         <div class="text-4xl mb-4 opacity-50">🧮</div>
         <h2 class="text-2xl font-semibold text-gray-400 mb-2">More Coming Soon</h2>
         <p class="text-gray-400">
-          Additional calculators for dosing, salinity, stocking, and more are in development.
+          Additional calculators for salinity, stocking, heater sizing, and more are in development.
         </p>
       </div>
     </div>
   </div>
 </template>
+
+<script setup>
+import { CALCULATORS } from '../config/calculators.js'
+
+const calculators = CALCULATORS
+</script>

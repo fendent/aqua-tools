@@ -493,7 +493,7 @@
         <p><strong>Continuous Mode:</strong> Water changes happen at a constant flow rate. For example, "50 gallons over 7 days" means approximately 0.3 gallons per hour.</p>
         <p><strong>Interval Mode:</strong> Water changes happen in discrete amounts at regular intervals. For example, "50 gallons every 7 days" means no change for 7 days, then 50 gallons all at once.</p>
         <p><strong>Continuous + Interval Mode:</strong> Combines both modes simultaneously. Water changes at a constant continuous flow rate while also performing periodic interval changes. For example, "20 gallons over 7 days" continuously plus "30 gallons every 7 days" in discrete changes. Note: Supply and waste reservoirs only track continuous changes.</p>
-        <p><strong>Old vs New Water:</strong> "Old water" is the water present at the start of the simulation. As water changes occur, old water is diluted exponentially following the formula: remaining_old_water = current_old_water × (1 - volume_removed / system_volume)</p>
+        <p><strong>Old vs New Water:</strong> "Old water" is the water present at the start of the simulation. As water changes occur, old water is diluted exponentially following the formula: remaining_old_water = current_old_water * (1 - volume_removed / system_volume)</p>
         <p><strong>Supply Reservoir:</strong> Tracks only continuous water changes. Automatically refills to full capacity when it reaches or falls below the refill threshold. Set threshold to 0 to refill only when completely empty.</p>
         <p><strong>Waste Reservoir:</strong> Tracks only continuous water changes. The graph shows waste accumulation. When the waste would exceed the reservoir size, it resets to 0 (simulating emptying the reservoir).</p>
       </div>

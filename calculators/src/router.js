@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from './components/Home.vue'
 import WaterChangeModel from './calculators/water-change/WaterChangeModel.vue'
+import DiyDosingCalculator from './calculators/diy-dosing/DiyDosingCalculator.vue'
 
 const routes = [
   {
@@ -12,6 +13,11 @@ const routes = [
     path: '/calculators/water-change',
     name: 'WaterChange',
     component: WaterChangeModel
+  },
+  {
+    path: '/calculators/diy-dosing',
+    name: 'DiyDosing',
+    component: DiyDosingCalculator
   }
 ]
 

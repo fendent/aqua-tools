@@ -1,12 +1,6 @@
 <template>
   <div class="min-h-screen">
-    <nav class="bg-white shadow-sm border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 py-3">
-        <router-link to="/" class="text-xl font-semibold text-gray-800 hover:text-blue-600 transition-colors">
-          🥩 Aquaria Calculators
-        </router-link>
-      </div>
-    </nav>
+    <Navigation />
 
     <main class="py-6">
       <router-view />
@@ -21,5 +15,5 @@
 </template>
 
 <script setup>
-// Router handles all navigation now
+import Navigation from './components/Navigation.vue'
 </script>

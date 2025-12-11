@@ -481,8 +481,7 @@ export const PARAMETER_RANGES = {
     natural: { min: 0, max: 0 },
     recommended: { min: 0, max: 2 },
     optimal: { min: 0, max: 0 },
-    unit: 'ppm',
-    note: 'For cycling only'
+    unit: 'ppm'
   }
 }
 

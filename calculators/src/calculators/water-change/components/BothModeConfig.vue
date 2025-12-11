@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import VolumeInput from './VolumeInput.vue'
+import VolumeInput from '../../../components/VolumeInput.vue'
 
 defineProps({
   continuousTime: { type: Number, required: true },

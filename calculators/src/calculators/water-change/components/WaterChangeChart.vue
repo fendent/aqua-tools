@@ -11,7 +11,9 @@
 
 <script setup>
 import { computed, ref, defineExpose } from 'vue'
-import GenericChart from '../../components/GenericChart.vue'
+import GenericChart from '../../../components/GenericChart.vue'
+import { formatTimeValue } from '../../../utils/timeUtils.js'
+import { getUnitAbbrev } from '../../../utils/volumeUtils.js'
 
 const chartRef = ref(null)
 
@@ -30,17 +32,6 @@ const props = defineProps({
     default: 'gallons'
   }
 })
-
-const getUnitLabel = (unit) => {
-  const labels = {
-    gallons: 'gal',
-    ouncesUS: 'US fl oz',
-    ouncesUK: 'UK fl oz',
-    liters: 'L',
-    milliliters: 'mL'
-  }
-  return labels[unit] || unit
-}
 
 const currentDatasets = computed(() => {
   if (!props.data.length) return []
@@ -117,33 +108,6 @@ const currentDatasets = computed(() => {
   return []
 })
 
-const formatTimeValue = (value, timeLabel) => {
-  if (timeLabel === 'Days') {
-    const days = Math.floor(value)
-    const hours = Math.round((value - days) * 24)
-    if (days === 0) {
-      return `${hours}h`
-    } else if (hours === 0) {
-      return `${days}d`
-    } else {
-      return `${days}d ${hours}h`
-    }
-  } else if (timeLabel === 'Weeks') {
-    const weeks = Math.floor(value)
-    const days = Math.round((value - weeks) * 7)
-    if (weeks === 0) {
-      return `${days}d`
-    } else if (days === 0) {
-      return `${weeks}w`
-    } else {
-      return `${weeks}w ${days}d`
-    }
-  } else if (timeLabel === 'Hours') {
-    return `${value.toFixed(1)}h`
-  }
-  return value.toString()
-}
-
 const currentOptions = computed(() => {
   const timeLabel = props.data[0]?.timeLabel || 'Time'
 
@@ -170,7 +134,7 @@ const currentOptions = computed(() => {
         display: true,
         title: {
           display: true,
-          text: props.chartType === 'area-percent' ? 'Percentage (%)' : `Volume (${getUnitLabel(props.volumeUnit)})`
+          text: props.chartType === 'area-percent' ? 'Percentage (%)' : `Volume (${getUnitAbbrev(props.volumeUnit)})`
         },
         ...(props.chartType === 'area-percent' && {
           min: 0,
@@ -190,7 +154,7 @@ const currentOptions = computed(() => {
             const value = context.parsed.y
             const formattedValue = props.chartType === 'area-percent'
               ? `${value.toFixed(1)}%`
-              : `${value.toFixed(1)} ${getUnitLabel(props.volumeUnit)}`
+              : `${value.toFixed(1)} ${getUnitAbbrev(props.volumeUnit)}`
             return `${label}: ${formattedValue}`
           }
         }

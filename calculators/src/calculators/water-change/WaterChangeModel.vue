@@ -145,7 +145,7 @@
               </p>
             </div>
             <div class="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-              Volume: {{ formatVolume(calculatedVolume) }} {{ getUnitAbbrev(systemVolumeUnit) }}
+              Volume: {{ formatVolume(calculatedVolume, systemVolumeUnit) }} {{ getUnitAbbrev(systemVolumeUnit) }}
             </div>
           </div>
 
@@ -172,7 +172,7 @@
                 </p>
               </div>
               <div class="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                Volume: {{ formatVolume(calculatedVolume) }} {{ getUnitAbbrev(systemVolumeUnit) }}
+                Volume: {{ formatVolume(calculatedVolume, systemVolumeUnit) }} {{ getUnitAbbrev(systemVolumeUnit) }}
               </div>
             </template>
             <template #interval-input>
@@ -191,7 +191,7 @@
                 </p>
               </div>
               <div class="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                Volume: {{ formatVolume(calculatedIntervalVolume) }} {{ getUnitAbbrev(systemVolumeUnit) }}
+                Volume: {{ formatVolume(calculatedIntervalVolume, systemVolumeUnit) }} {{ getUnitAbbrev(systemVolumeUnit) }}
               </div>
             </template>
           </BothModeConfig>
@@ -327,7 +327,7 @@
     <div class="grid md:grid-cols-3 gap-4">
       <StatCard
         :label="changeMode === 'both' ? 'Continuous Water Changed' : 'Total Water Changed'"
-        :value="formatVolume(totalWaterChanged) + ' ' + getUnitAbbrev(displayUnit)"
+        :value="formatVolume(totalWaterChanged, displayUnit) + ' ' + getUnitAbbrev(displayUnit)"
         color="blue"
       />
       <StatCard
@@ -342,7 +342,7 @@
       />
       <StatCard
         label="Supply Remaining"
-        :value="formatVolume(finalData.supply) + ' ' + getUnitAbbrev(displayUnit)"
+        :value="formatVolume(finalData.supply, displayUnit) + ' ' + getUnitAbbrev(displayUnit)"
         color="orange"
       />
       <StatCard
@@ -503,14 +503,24 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import WaterChangeChart from './WaterChangeChart.vue'
+import WaterChangeChart from './components/WaterChangeChart.vue'
 import GenericChart from '../../components/GenericChart.vue'
 import VolumeUnitSelect from '../../components/VolumeUnitSelect.vue'
 import TimeUnitSelect from '../../components/TimeUnitSelect.vue'
 import VolumeInput from '../../components/VolumeInput.vue'
 import StatCard from '../../components/StatCard.vue'
 import CardSection from '../../components/CardSection.vue'
-import BothModeConfig from '../../components/BothModeConfig.vue'
+import BothModeConfig from './components/BothModeConfig.vue'
+import {
+  toMilliliters,
+  fromMilliliters,
+  getVolumeStep,
+  getUnitAbbrev,
+  formatVolume,
+  getBestFlowUnit,
+  formatFlowRateWithUnit
+} from '../../utils/volumeUtils.js'
+import { convertToHours, formatTimeValue } from '../../utils/timeUtils.js'
 
 const STORAGE_KEY = 'waterChangeModelSettings'
 const DEFAULTS = {
@@ -619,145 +629,6 @@ const downloadChartImage = (refName, filename) => {
   }
 }
 
-// Conversion rates to milliliters (base unit)
-const toMilliliters = (value, unit) => {
-  const conversions = {
-    gallons: 3785.41,
-    ouncesUS: 29.5735,
-    ouncesUK: 28.4131,
-    liters: 1000,
-    milliliters: 1
-  }
-  return value * conversions[unit]
-}
-
-// Conversion from milliliters to target unit
-const fromMilliliters = (ml, unit) => {
-  const conversions = {
-    gallons: 1 / 3785.41,
-    ouncesUS: 1 / 29.5735,
-    ouncesUK: 1 / 28.4131,
-    liters: 1 / 1000,
-    milliliters: 1
-  }
-  return ml * conversions[unit]
-}
-
-const getVolumeStep = (unit) => {
-  if (unit === 'milliliters') return 10
-  if (unit === 'ouncesUS' || unit === 'ouncesUK') return 0.1
-  return 0.1
-}
-
-const getUnitAbbrev = (unit) => {
-  const abbrevs = {
-    gallons: 'gal',
-    ouncesUS: 'US fl oz',
-    ouncesUK: 'UK fl oz',
-    liters: 'L',
-    milliliters: 'mL'
-  }
-  return abbrevs[unit] || unit
-}
-
-const formatNumber = (num) => {
-  const parts = num.toString().split('.')
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-  return parts.join('.')
-}
-
-const formatVolume = (value) => {
-  if (displayUnit.value === 'milliliters') {
-    return formatNumber(Math.round(value))
-  }
-  return formatNumber(value.toFixed(1))
-}
-
-const getBestFlowUnit = (rateInCurrentUnit, currentUnit) => {
-  const threshold = 0.1
-
-  // Current value is < threshold, try to find a smaller unit where it's >= threshold
-  const rateInMl = toMilliliters(rateInCurrentUnit, currentUnit)
-
-  // Define unit progression based on user selection
-  const progressions = {
-    'gal-floz-ml': ['gallons', 'ouncesUS', 'ouncesUK', 'milliliters'],
-    'gal-l-ml': ['gallons', 'liters', 'milliliters'],
-    'l-ml': ['liters', 'milliliters'],
-    'ml': ['milliliters']
-  }
-
-  const progression = progressions[flowRateProgression.value] || progressions['gal-floz-ml']
-
-  // Find current unit's position in the progression
-  let currentIndex = progression.indexOf(currentUnit)
-
-  // If current unit is not in the progression, map it to a compatible starting point
-  if (currentIndex === -1) {
-    // Handle ouncesUK as equivalent to ouncesUS
-    if (currentUnit === 'ouncesUK' && progression.includes('ouncesUS')) {
-      currentIndex = progression.indexOf('ouncesUS')
-      currentUnit = 'ouncesUS'
-    }
-    // If using gallons/fl oz but progression is l-ml, start from beginning (liters)
-    else if ((currentUnit === 'gallons' || currentUnit === 'ouncesUS' || currentUnit === 'ouncesUK')) {
-      currentIndex = -1 // Start from beginning
-    }
-    // If using liters but progression doesn't include it (starts with gallons)
-    else if (currentUnit === 'liters' && !progression.includes('liters')) {
-      currentIndex = -1 // Start from beginning
-    }
-    // If using milliliters, it's always in the progression
-    else if (currentUnit === 'milliliters') {
-      currentIndex = progression.indexOf('milliliters')
-    }
-  }
-
-  // Check if current unit value is already >= threshold
-  if (currentIndex !== -1) {
-    const rateInCurrentMapped = fromMilliliters(rateInMl, progression[currentIndex])
-    if (rateInCurrentMapped >= threshold) {
-      return progression[currentIndex]
-    }
-  }
-
-  // Try progressively smaller units from the current position
-  const startIndex = currentIndex === -1 ? 0 : currentIndex + 1
-  for (let i = startIndex; i < progression.length; i++) {
-    const testUnit = progression[i]
-    const rateInTestUnit = fromMilliliters(rateInMl, testUnit)
-    if (rateInTestUnit >= threshold) {
-      return testUnit
-    }
-  }
-
-  // Fall back to the smallest unit in the progression
-  return progression[progression.length - 1]
-}
-
-const formatFlowRateWithUnit = (rateInDisplayUnit, timeUnit, overrideUnit = null) => {
-  const bestUnit = overrideUnit || getBestFlowUnit(rateInDisplayUnit, displayUnit.value)
-
-  // Convert to best unit if needed
-  let value = rateInDisplayUnit
-  if (bestUnit !== displayUnit.value) {
-    const rateInMl = toMilliliters(rateInDisplayUnit, displayUnit.value)
-    value = fromMilliliters(rateInMl, bestUnit)
-  }
-
-  // Format the value
-  let formatted
-  if (bestUnit === 'milliliters') {
-    formatted = value < 1 ? formatNumber(value.toFixed(2)) : formatNumber(Math.round(value))
-  } else if (bestUnit === 'ouncesUS' || bestUnit === 'ouncesUK') {
-    formatted = value < 0.1 ? formatNumber(value.toFixed(3)) : formatNumber(value.toFixed(2))
-  } else {
-    formatted = value < 1 ? formatNumber(value.toFixed(3)) : formatNumber(value.toFixed(2))
-  }
-
-  return `${formatted} ${getUnitAbbrev(bestUnit)}${timeUnit}`
-}
-
 const flowRates = computed(() => {
   if (changeMode.value !== 'continuous' && changeMode.value !== 'both') {
     return {
@@ -779,10 +650,10 @@ const flowRates = computed(() => {
   const flowRatePerHour = fromMilliliters(volumeMl / timeHours, displayUnit.value)
 
   return {
-    perSecond: formatFlowRateWithUnit(flowRatePerHour / 3600, '/s', flowRateUnitOverrides.value.perSecond || null),
-    perMinute: formatFlowRateWithUnit(flowRatePerHour / 60, '/min', flowRateUnitOverrides.value.perMinute || null),
-    perHour: formatFlowRateWithUnit(flowRatePerHour, '/hr', flowRateUnitOverrides.value.perHour || null),
-    perDay: formatFlowRateWithUnit(flowRatePerHour * 24, '/day', flowRateUnitOverrides.value.perDay || null)
+    perSecond: formatFlowRateWithUnit(flowRatePerHour / 3600, displayUnit.value, '/s', flowRateUnitOverrides.value.perSecond || null, flowRateProgression.value),
+    perMinute: formatFlowRateWithUnit(flowRatePerHour / 60, displayUnit.value, '/min', flowRateUnitOverrides.value.perMinute || null, flowRateProgression.value),
+    perHour: formatFlowRateWithUnit(flowRatePerHour, displayUnit.value, '/hr', flowRateUnitOverrides.value.perHour || null, flowRateProgression.value),
+    perDay: formatFlowRateWithUnit(flowRatePerHour * 24, displayUnit.value, '/day', flowRateUnitOverrides.value.perDay || null, flowRateProgression.value)
   }
 })
 
@@ -914,11 +785,6 @@ watch([
   flowRateUnitOverrides,
   parameterTracking
 ], saveSettings, { deep: true })
-
-const convertToHours = (amount, unit) => {
-  const conversions = { hours: 1, days: 24, weeks: 168 }
-  return amount * conversions[unit]
-}
 
 const currentTimeStep = computed(() => {
   const unit = changeMode.value === 'continuous' ? timeUnit.value : intervalUnit.value
@@ -1093,33 +959,6 @@ const parameterDatasets = computed(() => {
     pointRadius: 0
   }]
 })
-
-const formatTimeValue = (value, timeLabel) => {
-  if (timeLabel === 'Days') {
-    const days = Math.floor(value)
-    const hours = Math.round((value - days) * 24)
-    if (days === 0) {
-      return `${hours}h`
-    } else if (hours === 0) {
-      return `${days}d`
-    } else {
-      return `${days}d ${hours}h`
-    }
-  } else if (timeLabel === 'Weeks') {
-    const weeks = Math.floor(value)
-    const days = Math.round((value - weeks) * 7)
-    if (weeks === 0) {
-      return `${days}d`
-    } else if (days === 0) {
-      return `${weeks}w`
-    } else {
-      return `${weeks}w ${days}d`
-    }
-  } else if (timeLabel === 'Hours') {
-    return `${value.toFixed(1)}h`
-  }
-  return value.toString()
-}
 
 const parameterChartOptions = computed(() => {
   const timeLabel = graphData.value[0]?.timeLabel || 'Time'

@@ -63,15 +63,11 @@ export const calculatePowderAmount = (
   // Calculate how much this dose will change the parameter
   const changePerDose = (elementPerDoseMg / systemVolumeL)
 
-  // Calculate dose per gallon for convenience
-  const dosePerGallon = doseVolume / (systemVolumeL / LITERS_PER_GALLON)
-
   return {
     powderNeeded: powderNeededG,
     solutionConcentration: solutionConcentrationPpm,
     changePerDose: changePerDose,
     dosesInSolution: totalDoses,
-    dosePerGallon: dosePerGallon,
     systemVolumeL: systemVolumeL,
     warnings: checkForWarnings(chemical, powderNeededG, solutionVolume, solutionConcentrationPpm),
     preparationInstruction: `Dissolve ${powderNeededG.toFixed(2)}g of ${chemical.name} in RODI water`
@@ -142,19 +138,19 @@ const checkForWarnings = (chemical, powderNeededG, solutionVolume, concentration
     })
   }
 
-  // Check for very small powder amounts
+  // Check for very small compound amounts
   if (powderNeededG < 0.1) {
     warnings.push({
       type: 'info',
-      message: `Very small amount of powder (${powderNeededG.toFixed(3)}g). Consider increasing solution volume or reducing dose amount for easier measurement.`
+      message: `Very small amount of compound (${powderNeededG.toFixed(3)}g). Consider increasing solution volume or reducing dose amount for easier measurement.`
     })
   }
 
-  // Check for very large powder amounts
+  // Check for very large compound amounts
   if (powderNeededG > 500) {
     warnings.push({
       type: 'info',
-      message: `Large amount of powder needed (${powderNeededG.toFixed(1)}g). Consider reducing solution volume or increasing dose size.`
+      message: `Large amount of compound needed (${powderNeededG.toFixed(1)}g). Consider reducing solution volume or increasing dose size.`
     })
   }
 
@@ -179,7 +175,6 @@ export const formatDosingInstructions = (results, doseVolume, systemVolume, syst
   instructions.push(`- Add ${parseFloat(doseVolume.toFixed(2))}mL per ${systemVolume} ${systemVolumeUnit}`)
   instructions.push(`- This will raise the parameter by ${parseFloat(changePerDose.toFixed(3))} ${userUnit}`)
   instructions.push(`- Solution provides ${results.dosesInSolution.toFixed(0)} total doses`)
-  instructions.push(`- Dose per gallon: ${parseFloat(results.dosePerGallon.toFixed(2))}mL/gal`)
 
   return instructions
 }

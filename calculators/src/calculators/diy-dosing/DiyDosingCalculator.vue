@@ -287,14 +287,14 @@
           <div class="text-sm text-blue-900">
             <p class="font-medium mb-1">What does this mean?</p>
             <p class="text-blue-800">
-              You're preparing a dosing solution by dissolving powder in water. Each time you dose,
+              You're preparing a dosing solution by dissolving compound(s) in water. Each time you dose,
               you'll add <strong>{{ doseVolume }} {{ doseVolumeUnitAbbrev }}</strong> of this
               solution to your <strong>{{ systemVolume }} {{ systemVolumeUnitSingular }}</strong> tank,
 
               which will raise <strong>{{ currentParameterLabel }}</strong>
               by <strong>{{ targetChange }} {{ targetChangeUnit }}</strong>.
 
-              The calculator will tell you how much powder to dissolve to make
+              The calculator will tell you how much compound to dissolve to make
               <strong>{{ solutionVolume }} {{ solutionVolumeUnitAbbrev }}</strong> of solution.
             </p>
           </div>
@@ -331,19 +331,19 @@
       <!-- Main Results -->
       <div class="grid md:grid-cols-3 gap-4 mb-6">
         <StatCard
-          label="Powder Needed"
+          label="Compound Needed"
           :value="`${calculationResults.powderNeeded.toFixed(2)}g`"
           color="blue"
+        />
+        <StatCard
+          label="Solution Needed"
+          :value="`${solutionVolume} ${solutionVolumeUnitAbbrev}`"
+          color="purple"
         />
         <StatCard
           label="Total Doses"
           :value="calculationResults.dosesInSolution.toFixed(0)"
           color="green"
-        />
-        <StatCard
-          label="Dose per Gallon"
-          :value="calculationResults.dosePerGallon.toFixed(2) + ' mL/gal'"
-          color="purple"
         />
       </div>
 
@@ -680,6 +680,7 @@ const saveSettings = () => {
 watch(selectedParameter, (newParam) => {
   selectedBaseCompound.value = ''
   selectedFormId.value = ''
+
   // Set targetChangeUnit to the parameter's base unit
   if (newParam) {
     const paramInfo = getParameterInfo(newParam)
@@ -691,7 +692,7 @@ watch(selectedParameter, (newParam) => {
       targetChangeUnit.value = paramInfo.unit
     }
   }
-}, { immediate: true })
+})
 
 watch(selectedBaseCompound, () => {
   selectedFormId.value = ''

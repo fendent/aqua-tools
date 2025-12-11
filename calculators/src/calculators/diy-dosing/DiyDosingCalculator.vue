@@ -3,7 +3,7 @@
     <div class="text-center mb-8">
       <h1 class="text-3xl font-bold text-gray-900 mb-2">DIY Dosing Calculator</h1>
       <p class="text-gray-600">
-        Calculate powder amounts for custom reef tank dosing supplements
+        Calculate compound amounts for custom reef tank dosing supplements
       </p>
     </div>
 
@@ -329,22 +329,23 @@
         </div>
 
       <!-- Main Results -->
-      <div class="grid md:grid-cols-3 gap-4 mb-6">
+      <div class="grid md:grid-cols-2 gap-4 mb-6">
         <StatCard
           label="Compound Needed"
-          :value="`${calculationResults.powderNeeded.toFixed(2)}g`"
+          :value="`${displayCompoundNeeded} ${displayCompoundUnit}`"
           color="blue"
-        />
+        >
+          <div class="text-xs text-gray-600 mb-1">Display unit:</div>
+          <WeightUnitSelect v-model="displayWeightUnit" label-format="abbrev" />
+        </StatCard>
         <StatCard
           label="Solution Needed"
-          :value="`${solutionVolume} ${solutionVolumeUnitAbbrev}`"
+          :value="`${displaySolutionNeeded} ${displaySolutionUnitAbbrev}`"
           color="purple"
-        />
-        <StatCard
-          label="Total Doses"
-          :value="calculationResults.dosesInSolution.toFixed(0)"
-          color="green"
-        />
+        >
+          <div class="text-xs text-gray-600 mb-1">Display unit:</div>
+          <VolumeUnitSelect v-model="displaySolutionUnit" label-format="abbrev" />
+        </StatCard>
       </div>
 
       <!-- Balanced Recipe Breakdown -->
@@ -437,6 +438,7 @@
 import { ref, computed, watch } from 'vue'
 import CardSection from '../../components/CardSection.vue'
 import VolumeUnitSelect from '../../components/VolumeUnitSelect.vue'
+import WeightUnitSelect from '../../components/WeightUnitSelect.vue'
 import StatCard from '../../components/StatCard.vue'
 import {
   ArrowTopRightOnSquareIcon,
@@ -453,11 +455,12 @@ import {
   getChemicalByForm
 } from '../../utils/dosingChemicals.js'
 import {
-  calculatePowderAmount,
+  calculateCompoundAmount,
   formatDosingInstructions,
   validateInputs
 } from '../../utils/dosingCalculations.js'
-import { getVolumeStep, toMilliliters } from '../../utils/volumeUtils.js'
+import { getVolumeStep, toMilliliters, convertVolume } from '../../utils/volumeUtils.js'
+import { convertWeight, getWeightUnitAbbrev, getWeightPrecision } from '../../utils/weightUtils.js'
 
 const STORAGE_KEY = 'diyDosingCalculatorSettings'
 
@@ -495,6 +498,10 @@ const solutionVolume = ref(settings.solutionVolume || 1000)
 const solutionVolumeUnit = ref(settings.solutionVolumeUnit || 'milliliters')
 const copyButtonText = ref('Copy Recipe')
 const jimWelshMode = ref(settings.jimWelshMode || false)
+
+// Display units for recipe section
+const displayWeightUnit = ref(settings.displayWeightUnit || 'grams')
+const displaySolutionUnit = ref(settings.displaySolutionUnit || 'milliliters')
 
 const baseCompounds = computed(() => {
   if (!selectedParameter.value) return []
@@ -545,7 +552,7 @@ const calculationResults = computed(() => {
 
   if (errors.length > 0) return null
 
-  return calculatePowderAmount(
+  return calculateCompoundAmount(
     systemVolume.value,
     systemVolumeUnit.value,
     targetChangeBase,
@@ -609,6 +616,23 @@ const getAbbreviatedUnit = (unit) => {
 const doseVolumeUnitAbbrev = computed(() => getAbbreviatedUnit(doseVolumeUnit.value))
 const solutionVolumeUnitAbbrev = computed(() => getAbbreviatedUnit(solutionVolumeUnit.value))
 
+// Display values with selected units
+const displayCompoundNeeded = computed(() => {
+  if (!calculationResults.value) return null
+  const converted = convertWeight(calculationResults.value.compoundNeeded, displayWeightUnit.value)
+  const precision = getWeightPrecision(displayWeightUnit.value)
+  return converted.toFixed(precision)
+})
+
+const displayCompoundUnit = computed(() => getWeightUnitAbbrev(displayWeightUnit.value))
+
+const displaySolutionNeeded = computed(() => {
+  const converted = convertVolume(solutionVolume.value, solutionVolumeUnit.value, displaySolutionUnit.value)
+  return converted.toFixed(displaySolutionUnit.value === 'milliliters' ? 0 : 2)
+})
+
+const displaySolutionUnitAbbrev = computed(() => getAbbreviatedUnit(displaySolutionUnit.value))
+
 // Jim Welsh Mode: Pluralize all parameters
 const getParameterLabel = (paramKey) => {
   const baseLabel = parameters[paramKey].label
@@ -669,7 +693,9 @@ const saveSettings = () => {
       doseVolumeUnit: doseVolumeUnit.value,
       solutionVolume: solutionVolume.value,
       solutionVolumeUnit: solutionVolumeUnit.value,
-      jimWelshMode: jimWelshMode.value
+      jimWelshMode: jimWelshMode.value,
+      displayWeightUnit: displayWeightUnit.value,
+      displaySolutionUnit: displaySolutionUnit.value
     }))
   } catch (error) {
     console.error('Failed to save settings:', error)
@@ -711,6 +737,8 @@ watch([
   doseVolumeUnit,
   solutionVolume,
   solutionVolumeUnit,
-  jimWelshMode
+  jimWelshMode,
+  displayWeightUnit,
+  displaySolutionUnit
 ], saveSettings, { deep: true })
 </script>

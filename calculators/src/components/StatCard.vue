@@ -4,6 +4,9 @@
       <div class="text-sm text-gray-600">{{ label }}</div>
       <div class="text-2xl font-bold" :class="valueClasses">{{ value }}</div>
     </div>
+    <div v-if="$slots.default" class="px-4 pb-4 pt-2 border-t border-opacity-30" :class="borderClasses">
+      <slot />
+    </div>
   </div>
 </template>
 
@@ -32,5 +35,14 @@ const valueClasses = computed(() => ({
   'text-orange-700': props.color === 'orange',
   'text-cyan-700': props.color === 'cyan',
   'text-red-700': props.color === 'red'
+}))
+
+const borderClasses = computed(() => ({
+  'border-blue-200': props.color === 'blue',
+  'border-green-200': props.color === 'green',
+  'border-purple-200': props.color === 'purple',
+  'border-orange-200': props.color === 'orange',
+  'border-cyan-200': props.color === 'cyan',
+  'border-red-200': props.color === 'red'
 }))
 </script>

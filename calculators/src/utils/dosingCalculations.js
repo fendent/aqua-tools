@@ -10,7 +10,7 @@ const RANDYS_MGCL2_RATIO = 7.58
 const RANDYS_MGSO4_RATIO = 0.95
 
 /**
- * Calculate the amount of powder needed to create a dosing solution
+ * Calculate the amount of compound needed to create a dosing solution
  *
  * @param {number} systemVolume - Total system volume
  * @param {string} systemVolumeUnit - Unit of system volume (gallons, liters, etc.)
@@ -20,7 +20,7 @@ const RANDYS_MGSO4_RATIO = 0.95
  * @param {number} solutionVolume - Total volume of solution to prepare (in mL)
  * @returns {object} Calculation results
  */
-export const calculatePowderAmount = (
+export const calculateCompoundAmount = (
   systemVolume,
   systemVolumeUnit,
   targetChange,
@@ -53,9 +53,9 @@ export const calculatePowderAmount = (
   // Convert mg to grams
   const totalElementG = totalElementInSolutionMg / MG_PER_GRAM
 
-  // Calculate powder needed based on element percentage
+  // Calculate compound needed based on element percentage
   // elementPercentage is the percentage of the target element in the compound
-  const powderNeededG = totalElementG / (chemical.elementPercentage / 100)
+  const compoundNeededG = totalElementG / (chemical.elementPercentage / 100)
 
   // Calculate final solution concentration (ppm of element in the solution)
   const solutionConcentrationPpm = (totalElementInSolutionMg / solutionVolume) * ML_PER_LITER
@@ -64,13 +64,13 @@ export const calculatePowderAmount = (
   const changePerDose = (elementPerDoseMg / systemVolumeL)
 
   return {
-    powderNeeded: powderNeededG,
+    compoundNeeded: compoundNeededG,
     solutionConcentration: solutionConcentrationPpm,
     changePerDose: changePerDose,
     dosesInSolution: totalDoses,
     systemVolumeL: systemVolumeL,
-    warnings: checkForWarnings(chemical, powderNeededG, solutionVolume, solutionConcentrationPpm),
-    preparationInstruction: `Dissolve ${powderNeededG.toFixed(2)}g of ${chemical.name} in RODI water`
+    warnings: checkForWarnings(chemical, compoundNeededG, solutionVolume, solutionConcentrationPpm),
+    preparationInstruction: `Dissolve ${compoundNeededG.toFixed(2)}g of ${chemical.name} in RODI water`
   }
 }
 
@@ -93,7 +93,7 @@ const calculateBalancedMagnesium = (systemVolumeL, targetChange, doseVolume, sol
   const dosePerGallon = doseVolume / (systemVolumeL / LITERS_PER_GALLON)
 
   return {
-    powderNeeded: mgcl2Needed + mgso4Needed,
+    compoundNeeded: mgcl2Needed + mgso4Needed,
     mgcl2Needed: mgcl2Needed,
     mgso4Needed: mgso4Needed,
     solutionConcentration: solutionConcentrationPpm,
@@ -109,18 +109,18 @@ const calculateBalancedMagnesium = (systemVolumeL, targetChange, doseVolume, sol
 /**
  * Check for potential issues with the dosing solution
  */
-const checkForWarnings = (chemical, powderNeededG, solutionVolume, concentrationPpm) => {
+const checkForWarnings = (chemical, compoundNeededG, solutionVolume, concentrationPpm) => {
   const warnings = []
 
   // Check solubility limit
   if (chemical.solubilityLimit) {
-    const concentrationGL = (powderNeededG / solutionVolume) * 1000
+    const concentrationGL = (compoundNeededG / solutionVolume) * 1000
     const solubilityPercent = (concentrationGL / chemical.solubilityLimit) * 100
 
     if (solubilityPercent > 90) {
       warnings.push({
         type: 'error',
-        message: `Concentration (${concentrationGL.toFixed(1)} g/L) exceeds solubility limit (${chemical.solubilityLimit} g/L). Powder may not fully dissolve.`
+        message: `Concentration (${concentrationGL.toFixed(1)} g/L) exceeds solubility limit (${chemical.solubilityLimit} g/L). compound may not fully dissolve.`
       })
     } else if (solubilityPercent > 70) {
       warnings.push({
@@ -139,18 +139,18 @@ const checkForWarnings = (chemical, powderNeededG, solutionVolume, concentration
   }
 
   // Check for very small compound amounts
-  if (powderNeededG < 0.1) {
+  if (compoundNeededG < 0.1) {
     warnings.push({
       type: 'info',
-      message: `Very small amount of compound (${powderNeededG.toFixed(3)}g). Consider increasing solution volume or reducing dose amount for easier measurement.`
+      message: `Very small amount of compound (${compoundNeededG.toFixed(3)}g). Consider increasing solution volume or reducing dose amount for easier measurement.`
     })
   }
 
   // Check for very large compound amounts
-  if (powderNeededG > 500) {
+  if (compoundNeededG > 500) {
     warnings.push({
       type: 'info',
-      message: `Large amount of compound needed (${powderNeededG.toFixed(1)}g). Consider reducing solution volume or increasing dose size.`
+      message: `Large amount of compound needed (${compoundNeededG.toFixed(1)}g). Consider reducing solution volume or increasing dose size.`
     })
   }
 

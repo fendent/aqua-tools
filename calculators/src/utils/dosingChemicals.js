@@ -118,7 +118,7 @@ export const CHEMICALS = {
       storageNotes: 'Store in sealed container. Efflorescent crystals that readily lose water, forming monohydrate.',
       solubilityLimit: 215,
       phEffect: 'High (~11.4 in solution)',
-      notes: 'Decahydrate form (true washing soda). Requires 2.70x more powder than anhydrous for same effect. Readily effloresces. Loses water at 100°C.',
+      notes: 'Decahydrate form (true washing soda). Requires 2.70x more compound than anhydrous for same effect. Readily effloresces. Loses water at 100°C.',
       pubchemLink: 'https://pubchem.ncbi.nlm.nih.gov/compound/Sodium-carbonate'
     }
   ],
@@ -255,7 +255,7 @@ export const CHEMICALS = {
       storageNotes: 'Store in sealed container. Efflorescent crystals that partially lose water at 100°C.',
       solubilityLimit: 150,
       phEffect: 'Very High (~12)',
-      notes: 'Hydrated form. Common in technical/reagent grade. Requires 2.32x more powder than anhydrous for same effect. More soluble than anhydrous.',
+      notes: 'Hydrated form. Common in technical/reagent grade. Requires 2.32x more compound than anhydrous for same effect. More soluble than anhydrous.',
       pubchemLink: 'https://pubchem.ncbi.nlm.nih.gov/compound/Trisodium-phosphate'
     },
     {
@@ -285,7 +285,7 @@ export const CHEMICALS = {
       storageNotes: 'Store in dry place.',
       solubilityLimit: 119,
       phEffect: 'Moderate (~9)',
-      notes: 'Dihydrate form. Less common than heptahydrate. Requires 1.25x more powder than anhydrous for same effect.',
+      notes: 'Dihydrate form. Less common than heptahydrate. Requires 1.25x more compound than anhydrous for same effect.',
       pubchemLink: 'https://pubchem.ncbi.nlm.nih.gov/compound/Disodium-phosphate'
     },
     {
@@ -300,7 +300,7 @@ export const CHEMICALS = {
       storageNotes: 'Store in dry place. Efflorescent crystals.',
       solubilityLimit: 119,
       phEffect: 'Moderate (~9)',
-      notes: 'Very common reagent grade form. Requires 1.89x more powder than anhydrous for same effect. White, odorless, efflorescent crystals.',
+      notes: 'Very common reagent grade form. Requires 1.89x more compound than anhydrous for same effect. White, odorless, efflorescent crystals.',
       pubchemLink: 'https://pubchem.ncbi.nlm.nih.gov/compound/Disodium-phosphate'
     },
     {
@@ -312,10 +312,10 @@ export const CHEMICALS = {
       commonNames: ['DSP·12H₂O'],
       grades: ['Pharmaceutical Grade (USP, Ph Eur, BP, JP)'],
       safetyNotes: 'Wear gloves. Avoid contact with eyes.',
-      storageNotes: 'Store in dry place. Efflorescent powder.',
+      storageNotes: 'Store in dry place. Efflorescent compound.',
       solubilityLimit: 119,
       phEffect: 'Moderate (~9)',
-      notes: 'Pharmaceutical grade form. Requires 2.52x more powder than anhydrous for same effect. Common in pharmaceutical applications.',
+      notes: 'Pharmaceutical grade form. Requires 2.52x more compound than anhydrous for same effect. Common in pharmaceutical applications.',
       pubchemLink: 'https://pubchem.ncbi.nlm.nih.gov/compound/Disodium-phosphate'
     },
     {
@@ -345,7 +345,7 @@ export const CHEMICALS = {
       storageNotes: 'Store in dry place.',
       solubilityLimit: 850,
       phEffect: 'Neutral (~4.5)',
-      notes: 'Monohydrate form. Common in laboratory grade. Requires 1.15x more powder than anhydrous for same effect.',
+      notes: 'Monohydrate form. Common in laboratory grade. Requires 1.15x more compound than anhydrous for same effect.',
       pubchemLink: 'https://pubchem.ncbi.nlm.nih.gov/compound/Monosodium-phosphate'
     },
     {
@@ -360,7 +360,7 @@ export const CHEMICALS = {
       storageNotes: 'Store in dry place.',
       solubilityLimit: 850,
       phEffect: 'Neutral (~4.5)',
-      notes: 'Dihydrate form. Very common in pharmaceutical/buffer applications. Requires 1.30x more powder than anhydrous for same effect.',
+      notes: 'Dihydrate form. Very common in pharmaceutical/buffer applications. Requires 1.30x more compound than anhydrous for same effect.',
       pubchemLink: 'https://pubchem.ncbi.nlm.nih.gov/compound/Monosodium-phosphate'
     },
     {
@@ -390,7 +390,7 @@ export const CHEMICALS = {
       storageNotes: 'Store in dry place. Crystalline solid.',
       solubilityLimit: 1680,
       phEffect: 'Moderate (~9)',
-      notes: 'Trihydrate form. Common in reagent grade. Requires 1.31x more powder than anhydrous for same effect. Very soluble in water.',
+      notes: 'Trihydrate form. Common in reagent grade. Requires 1.31x more compound than anhydrous for same effect. Very soluble in water.',
       pubchemLink: 'https://pubchem.ncbi.nlm.nih.gov/compound/Dipotassium-phosphate'
     },
     {

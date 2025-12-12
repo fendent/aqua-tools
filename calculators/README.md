@@ -12,6 +12,26 @@ Visualize continuous and interval water changes over time. Features:
 - Visualize old vs new water composition over time
 - Automatic reservoir refill simulation
 
+### DIY Dosing Calculator
+Calculate DIY supplement recipes for reef tank dosing. Features:
+- Support for all major parameters (calcium, alkalinity, magnesium, etc.)
+- Multiple chemical compound options with different hydration states
+- Precise calculations for creating custom dosing solutions
+- Collapsible charts showing concentration vs volume
+- Recipe instructions with safety warnings
+- localStorage persistence for all settings
+- Automatic selection when only one compound/form is available
+
+### Dosing Target Calculator
+Calculate supplement dosage to reach target parameter levels. Features:
+- Support for commercial products and DIY supplements
+- Individual unit selectors for all result cards
+- Real-time conversion between units (dKH, meq/L, ppm, etc.)
+- Safety warnings for large parameter swings
+- Support for both liquid and powder supplements
+- Detailed product information with manufacturer data
+- localStorage persistence for all settings
+
 ## Development
 
 ```bash
@@ -28,21 +48,24 @@ npm run deploy
 
 ## Adding a New Calculator
 
-It's super simple to add a new calculator:
+It's super simple to add a new calculator using Vue Router:
 
-1. **Create your calculator component** in `src/calculators/YourCalculator.vue`
-2. **Import it** in `src/App.vue`
-3. **Register it** in the `calculators` object with a URL slug
+1. **Create your calculator component** in `src/calculators/your-calculator/YourCalculator.vue`
+2. **Add a route** in `src/router.js`
+3. **Register it** in `src/config/calculators.js`
 4. **Add a card** for it in `src/components/Home.vue`
 
 ### Example: Adding a Salinity Calculator
 
-**Step 1:** Create `src/calculators/SalinityCalculator.vue`:
+**Step 1:** Create `src/calculators/salinity/SalinityCalculator.vue`:
 
 ```vue
 <template>
-  <div class="w-full max-w-4xl mx-auto p-6">
-    <h1 class="text-4xl font-bold text-gray-800 mb-4">Salinity Calculator</h1>
+  <div class="max-w-6xl mx-auto p-6 space-y-6">
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-2">Salinity Calculator</h1>
+      <p class="text-gray-600">Convert between specific gravity and salinity</p>
+    </div>
     <!-- Your calculator UI here -->
   </div>
 </template>
@@ -55,30 +78,73 @@ const specificGravity = ref(1.025)
 </script>
 ```
 
-**Step 2:** In `src/App.vue`, add your import and register it:
+**Step 2:** In `src/router.js`, add the route:
 
 ```javascript
-import SalinityCalculator from './calculators/SalinityCalculator.vue'
+import SalinityCalculator from './calculators/salinity/SalinityCalculator.vue'
 
-const calculators = {
-  'water-change': WaterChangeModel,
-  'salinity': SalinityCalculator  // Add this line
-}
+const routes = [
+  // ... existing routes
+  {
+    path: '/calculators/salinity',
+    name: 'Salinity',
+    component: SalinityCalculator
+  }
+]
 ```
 
-**Step 3:** In `src/components/Home.vue`, add a card:
+**Step 3:** In `src/config/calculators.js`, register it:
 
-```vue
-<a href="#/salinity" class="block p-6 bg-white rounded-xl shadow-lg...">
-  <div class="text-4xl mb-4">🧂</div>
-  <h2 class="text-2xl font-semibold text-gray-800 mb-2">Salinity Calculator</h2>
-  <p class="text-gray-600">Calculate salinity from specific gravity...</p>
-</a>
+```javascript
+export const calculators = [
+  // ... existing calculators
+  {
+    id: 'salinity',
+    name: 'Salinity Calculator',
+    description: 'Convert between specific gravity and salinity',
+    icon: '🧂',
+    path: '/calculators/salinity',
+    category: 'water-chemistry'
+  }
+]
 ```
 
-That's it! Your new calculator is now accessible at `#/salinity`.
+**Step 4:** The card will automatically appear in `src/components/Home.vue` based on the config.
 
-## Using Charts
+That's it! Your new calculator is now accessible at `/calculators/salinity`.
+
+## Architecture
+
+### Shared Components
+
+The project includes reusable components for common UI patterns:
+
+- **ChemicalSelect** - Compound and form selection with auto-selection capability
+- **ParameterInfoCard** - Display natural seawater values and recommended ranges
+- **ParameterSelect** - Standardized parameter selection buttons
+- **StatCard** - Colored result cards with optional slot content
+- **VolumeInput** - Volume input with unit selection
+- **CardSection** - Collapsible section containers
+- **ChartWrapper** - Chart.js integration for data visualization
+
+### Shared Utilities
+
+Common utility functions are centralized in `src/utils/`:
+
+- **concentrationUtils.js** - Concentration calculations and unit conversions
+- **dosingChemicals.js** - Chemical database and compound information
+- **commercialProducts.js** - Commercial product database
+- **volumeUtils.js** - Volume conversions and calculations
+- **weightUtils.js** - Weight conversions and formatting
+- **formatters.js** - Display formatting utilities
+
+### Composables
+
+Reusable logic is available in `src/composables/`:
+
+- **useParameterSelection** - Parameter selection state and labels
+
+### Using Charts
 
 If you need charts, use the `ChartWrapper` component:
 
@@ -146,12 +212,14 @@ jobs:
 ## Contributing
 
 Contributions welcome! Ideas for new calculators:
-- Dosing calculator (two-part, trace elements)
 - Salinity/specific gravity converter
 - Tank volume calculator
-- Stocking calculator
+- Stocking calculator (bioload estimation)
 - Evaporation rate estimator
 - Lighting PAR calculator
+- Nutrient export calculator (protein skimmer, refugium, etc.)
+- Two-part dosing calculator
+- Trace element dosing calculator
 
 ## License
 

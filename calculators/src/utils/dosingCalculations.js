@@ -134,7 +134,7 @@ const checkForWarnings = (chemical, compoundNeededG, solutionVolume, concentrati
   if (chemical.phEffect.includes('Very High') || chemical.phEffect.includes('Very Low')) {
     warnings.push({
       type: 'warning',
-      message: `This chemical has ${chemical.phEffect.toLowerCase()} pH. Handle with care and add slowly to tank.`
+      message: `This solution has ${chemical.phEffect.toLowerCase()} pH. Handle with care and add slowly to tank.`
     })
   }
 

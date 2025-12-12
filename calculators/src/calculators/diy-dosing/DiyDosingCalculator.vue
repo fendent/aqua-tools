@@ -42,61 +42,19 @@
       </div>
 
       <!-- Parameter Info -->
-      <div class="mt-4 p-4 bg-blue-50 rounded-lg">
-        <div class="grid md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <span class="font-medium">Natural Seawater:</span> {{ selectedParameter ? `${formatRange(parameterInfo.natural)} ${parameterInfo.unit}` : '—' }}
-          </div>
-          <div>
-            <span class="font-medium">Recommended Range:</span> {{ selectedParameter ? `${formatRange(parameterInfo.recommended)} ${parameterInfo.unit}` : '—' }}
-          </div>
-          <div>
-            <span class="font-medium">Optimal Target:</span> {{ selectedParameter ? `${formatRange(parameterInfo.optimal)} ${parameterInfo.unit}` : '—' }}
-          </div>
-        </div>
-      </div>
+      <ParameterInfoCard :parameter-info="parameterInfo" />
     </CardSection>
 
     <!-- Chemical Selection -->
     <CardSection title="2. Select Chemical Compound">
       <div class="space-y-3">
-        <!-- Base Compound Selection -->
-        <div>
-          <label class="block text-sm font-medium mb-2">Base Compound</label>
-          <select
-            v-model="selectedBaseCompound"
-            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-            :disabled="!selectedParameter"
-          >
-            <option value="">{{ selectedParameter ? 'Choose base compound...' : 'Select a parameter first' }}</option>
-            <option
-              v-for="compound in baseCompounds"
-              :key="compound.id"
-              :value="compound.id"
-            >
-              {{ compound.name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Form/Hydration State Selection -->
-        <div>
-          <label class="block text-sm font-medium mb-2">Form / Hydration State</label>
-          <select
-            v-model="selectedFormId"
-            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none"
-            :disabled="!selectedBaseCompound"
-          >
-            <option value="">{{ selectedBaseCompound ? 'Choose form...' : 'Select a base compound first' }}</option>
-            <option
-              v-for="form in availableForms"
-              :key="form.id"
-              :value="form.id"
-            >
-              {{ form.name }} - {{ form.formula }}
-            </option>
-          </select>
-        </div>
+        <ChemicalSelect
+          :parameter="selectedParameter"
+          v-model:base-compound="selectedBaseCompound"
+          v-model:form="selectedFormId"
+          compound-label="Base Compound"
+          :auto-select-compound="true"
+        />
 
         <!-- Chemical Details -->
         <div class="p-4 bg-gray-50 rounded-lg space-y-3">
@@ -170,30 +128,15 @@
     <!-- Configuration -->
     <CardSection title="3. Configuration">
       <div class="grid lg:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label class="block text-sm font-medium mb-2 flex items-center gap-1">
-            System Volume
-            <span class="group relative">
-              <InformationCircleIcon class="w-4 h-4 text-gray-400 cursor-help" />
-              <span class="invisible group-hover:visible absolute left-0 top-6 w-48 p-2 bg-gray-900 text-white text-xs rounded shadow-lg z-10">
-                The total water volume of your aquarium system
-              </span>
-            </span>
-          </label>
-          <div class="grid grid-cols-[1fr_110px] gap-2">
-            <input
-              v-model.number="systemVolume"
-              type="number"
-              class="w-full px-3 py-2 border rounded-lg"
-              :step="getVolumeStep(systemVolumeUnit)"
-              min="0.1"
-            />
-            <VolumeUnitSelect
-              v-model="systemVolumeUnit"
-              label-format="abbrev"
-            />
-          </div>
-        </div>
+        <VolumeInput
+          v-model="systemVolume"
+          v-model:unit="systemVolumeUnit"
+          label="System Volume"
+          :step="getVolumeStep(systemVolumeUnit)"
+          min="0.1"
+          grid-class="grid grid-cols-[1fr_110px] gap-2"
+          :unit-select-props="{ labelFormat: 'abbrev' }"
+        />
       </div>
 
       <div class="grid lg:grid-cols-3 gap-4 mb-4">
@@ -291,7 +234,7 @@
               you'll add <strong>{{ doseVolume }} {{ doseVolumeUnitAbbrev }}</strong> of this
               solution to your <strong>{{ systemVolume }} {{ systemVolumeUnitSingular }}</strong> tank,
 
-              which will raise <strong>{{ currentParameterLabel }}</strong>
+              which will raise <strong>{{ parameterLabel }}</strong>
               by <strong>{{ targetChange }} {{ targetChangeUnit }}</strong>.
 
               The calculator will tell you how much compound to dissolve to make
@@ -437,9 +380,12 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import CardSection from '../../components/CardSection.vue'
+import ChemicalSelect from '../../components/ChemicalSelect.vue'
+import VolumeInput from '../../components/VolumeInput.vue'
 import VolumeUnitSelect from '../../components/VolumeUnitSelect.vue'
 import WeightUnitSelect from '../../components/WeightUnitSelect.vue'
 import StatCard from '../../components/StatCard.vue'
+import ParameterInfoCard from '../../components/ParameterInfoCard.vue'
 import {
   ArrowTopRightOnSquareIcon,
   ExclamationTriangleIcon,
@@ -450,8 +396,6 @@ import {
 import {
   DOSING_PARAMETERS,
   getParameterInfo,
-  getBaseCompounds,
-  getFormsForCompound,
   getChemicalByForm
 } from '../../utils/dosingChemicals.js'
 import {
@@ -461,17 +405,9 @@ import {
 } from '../../utils/dosingCalculations.js'
 import { getVolumeStep, toMilliliters, convertVolume } from '../../utils/volumeUtils.js'
 import { convertWeight, getWeightUnitAbbrev, getWeightPrecision } from '../../utils/weightUtils.js'
+import { useParameterSelection } from '../../composables/useParameterSelection.js'
 
 const STORAGE_KEY = 'diyDosingCalculatorSettings'
-
-const parameters = {
-  [DOSING_PARAMETERS.CALCIUM]: { label: 'Calcium' },
-  [DOSING_PARAMETERS.ALKALINITY]: { label: 'Alkalinity' },
-  [DOSING_PARAMETERS.MAGNESIUM]: { label: 'Magnesium' },
-  [DOSING_PARAMETERS.NITRATE]: { label: 'Nitrate' },
-  [DOSING_PARAMETERS.PHOSPHATE]: { label: 'Phosphate' },
-  [DOSING_PARAMETERS.AMMONIA]: { label: 'Ammonia' }
-}
 
 // Load saved settings
 const loadSettings = () => {
@@ -499,19 +435,12 @@ const solutionVolumeUnit = ref(settings.solutionVolumeUnit || 'milliliters')
 const copyButtonText = ref('Copy Recipe')
 const jimWelshMode = ref(settings.jimWelshMode || false)
 
+// Use parameter selection composable
+const { parameters, getParameterLabel, parameterLabel } = useParameterSelection(selectedParameter, jimWelshMode)
+
 // Display units for recipe section
 const displayWeightUnit = ref(settings.displayWeightUnit || 'grams')
 const displaySolutionUnit = ref(settings.displaySolutionUnit || 'milliliters')
-
-const baseCompounds = computed(() => {
-  if (!selectedParameter.value) return []
-  return getBaseCompounds(selectedParameter.value)
-})
-
-const availableForms = computed(() => {
-  if (!selectedParameter.value || !selectedBaseCompound.value) return []
-  return getFormsForCompound(selectedParameter.value, selectedBaseCompound.value)
-})
 
 const selectedChemical = computed(() => {
   if (!selectedParameter.value || !selectedFormId.value) return null
@@ -585,12 +514,6 @@ const getChangeStep = () => {
   return 1
 }
 
-const formatRange = (range) => {
-  if (!range) return ''
-  if (range.min === range.max) return range.min
-  return `${range.min}-${range.max}`
-}
-
 const systemVolumeUnitSingular = computed(() => {
   const unitMap = {
     'gallons': 'gallon',
@@ -632,30 +555,6 @@ const displaySolutionNeeded = computed(() => {
 })
 
 const displaySolutionUnitAbbrev = computed(() => getAbbreviatedUnit(displaySolutionUnit.value))
-
-// Jim Welsh Mode: Pluralize all parameters
-const getParameterLabel = (paramKey) => {
-  const baseLabel = parameters[paramKey].label
-  if (!jimWelshMode.value) return baseLabel
-
-  // Pluralize with proper English rules
-  // Words ending in consonant + 'y' -> replace 'y' with 'ies'
-  if (baseLabel.endsWith('y')) {
-    const beforeY = baseLabel[baseLabel.length - 2]
-    const vowels = 'aeiouAEIOU'
-    if (!vowels.includes(beforeY)) {
-      return baseLabel.slice(0, -1) + 'ies'
-    }
-  }
-
-  // Default: just add 's'
-  return baseLabel + 's'
-}
-
-const currentParameterLabel = computed(() => {
-  if (!selectedParameter.value) return ''
-  return getParameterLabel(selectedParameter.value)
-})
 
 const copyToClipboard = async () => {
   const text = [

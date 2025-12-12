@@ -14,5 +14,13 @@ export const CALCULATORS = [
     path: '/calculators/diy-dosing',
     icon: '🧪',
     description: "Calculate mixtures for custom dosing supplements."
+  },
+  {
+    id: 'dosing-target',
+    name: 'Dosing Target Calculator',
+    shortName: 'Dosing Target',
+    path: '/calculators/dosing-target',
+    icon: '🎯',
+    description: 'Calculate supplement dosage to reach target Ca, Alk, Mg, and nutrient levels. Supports 120+ commercial products and full DIY supplement library.'
   }
 ]

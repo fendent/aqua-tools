@@ -50,10 +50,21 @@ export function convertAlkalinity(value, fromUnit, toUnit) {
 export function convertConcentration(value, fromUnit, toUnit) {
   if (fromUnit === toUnit) return value
 
-  if (fromUnit === 'µmol/kg' && toUnit === 'mmol/kg') {
-    return value / 1000
-  } else if (fromUnit === 'mmol/kg' && toUnit === 'µmol/kg') {
-    return value * 1000
+  // Convert to µmol/kg first
+  let umolkg = value
+  if (fromUnit === 'mmol/kg') {
+    umolkg = value * 1000
+  } else if (fromUnit === 'dKH') {
+    umolkg = value * DKH_TO_MEQ * MEQ_TO_UMOL
+  }
+
+  // Convert from µmol/kg to target unit
+  if (toUnit === 'µmol/kg') {
+    return umolkg
+  } else if (toUnit === 'mmol/kg') {
+    return umolkg / 1000
+  } else if (toUnit === 'dKH') {
+    return umolkg * UMOL_TO_MEQ * MEQ_TO_DKH
   }
 
   return value

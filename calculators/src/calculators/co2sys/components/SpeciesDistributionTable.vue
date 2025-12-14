@@ -1,208 +1,120 @@
 <template>
   <CardSection title="Species Distribution" :collapsible="true" :collapsed="collapsed" @update:collapsed="$emit('update:collapsed', $event)">
-    <div>
-      <table class="w-full text-sm">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="px-4 py-2 text-left font-semibold text-gray-700">Species</th>
-            <th class="px-4 py-2 text-right font-semibold text-gray-700">Concentration (µmol/kg)</th>
-            <th class="px-4 py-2 text-right font-semibold text-gray-700">% of Total</th>
-            <th class="px-4 py-2 text-left font-semibold text-gray-700">Role</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
+    <div class="space-y-5">
+      <div class="border border-gray-400 rounded-lg overflow-hidden">
+        <table class="w-full text-sm table-fixed" style="border-collapse: separate; border-spacing: 0;">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[40%] border-b border-gray-400">Species</th>
+              <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[35%] border-b border-gray-400">Concentration</th>
+              <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[25%] border-b border-gray-400">% of Total</th>
+            </tr>
+          </thead>
+          <tbody>
           <!-- Major Carbonate Species -->
           <tr class="bg-blue-50">
-            <td colspan="4" class="px-4 py-2 font-semibold text-gray-700">Carbonate Species (DIC)</td>
+            <td colspan="3" class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-400">Carbonate Species (DIC)</td>
           </tr>
-          <tr class="hover:bg-gray-50">
-            <td class="px-4 py-2">CO₂ (aq)</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.aqCO2, 'aqCO2') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatPercent(results.fCO2 * 100, 2) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Dissolved CO₂, gas exchange
-                  </div>
-                </div>
-                <span class="hidden md:inline">Dissolved CO₂, gas exchange</span>
-              </div>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50">
-            <td class="px-4 py-2">HCO₃⁻</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.HCO3, 'HCO3') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatPercent(results.fHCO3 * 100, 2) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Bicarbonate, dominant form
-                  </div>
-                </div>
-                <span class="hidden md:inline">Bicarbonate, dominant form</span>
-              </div>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50">
-            <td class="px-4 py-2">CO₃²⁻</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.CO3, 'CO3') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatPercent(results.fCO3 * 100, 2) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Carbonate, calcification
-                  </div>
-                </div>
-                <span class="hidden md:inline">Carbonate, calcification</span>
-              </div>
-            </td>
-          </tr>
+          <SpeciesRow
+            species="CO₂ (aq)"
+            :percent="`${formatPercent(results.fCO2 * 100, 2)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.aqCO2, displaySpeciesUnit), 'aqCO2')"
+            role="Dissolved CO₂, gas exchange"
+          />
+          <SpeciesRow
+            species="HCO₃⁻"
+            :percent="`${formatPercent(results.fHCO3 * 100, 2)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.HCO3, displaySpeciesUnit), 'HCO3')"
+            role="Bicarbonate, dominant form"
+            :stripe="true"
+          />
+          <SpeciesRow
+            species="CO₃²⁻"
+            :percent="`${formatPercent(results.fCO3 * 100, 2)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.CO3, displaySpeciesUnit), 'CO3')"
+            role="Carbonate, calcification"
+          />
 
           <!-- Minor Alkalinity Contributors -->
           <tr class="bg-green-50" v-if="results.minorSpecies">
-            <td colspan="4" class="px-4 py-2 font-semibold text-gray-700">Minor Alkalinity Contributors</td>
+            <td colspan="3" class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-400">Minor Alkalinity Contributors</td>
           </tr>
-          <tr class="hover:bg-gray-50" v-if="results.minorSpecies">
-            <td class="px-4 py-2">B(OH)₄⁻</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.minorSpecies.borate, 'minor') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatPercent((results.minorSpecies.borate / results.TA) * 100, 2) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Borate ion, ~2% of alkalinity
-                  </div>
-                </div>
-                <span class="hidden md:inline">Borate ion, ~2% of alkalinity</span>
-              </div>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50" v-if="results.minorSpecies">
-            <td class="px-4 py-2">OH⁻</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.minorSpecies.hydroxide, 'minor') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatPercent((results.minorSpecies.hydroxide / results.TA) * 100, 2) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Hydroxide, increases with pH
-                  </div>
-                </div>
-                <span class="hidden md:inline">Hydroxide, increases with pH</span>
-              </div>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50" v-if="results.minorSpecies && results.minorSpecies.silicate.SiO_OH3 > 0.01">
-            <td class="px-4 py-2">SiO(OH)₃⁻</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.minorSpecies.silicate.SiO_OH3, 'minor') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatPercent((results.minorSpecies.silicate.SiO_OH3 / results.TA) * 100, 2) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Silicate alkalinity
-                  </div>
-                </div>
-                <span class="hidden md:inline">Silicate alkalinity</span>
-              </div>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50" v-if="results.minorSpecies && results.minorSpecies.phosphate.HPO4 > 0.01">
-            <td class="px-4 py-2">HPO₄²⁻</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.minorSpecies.phosphate.HPO4, 'minor') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatPercent((results.minorSpecies.phosphate.HPO4 / results.TA) * 100, 2) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Phosphate alkalinity
-                  </div>
-                </div>
-                <span class="hidden md:inline">Phosphate alkalinity</span>
-              </div>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50" v-if="results.minorSpecies && results.minorSpecies.phosphate.PO4 > 0.01">
-            <td class="px-4 py-2">PO₄³⁻</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.minorSpecies.phosphate.PO4, 'minor') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatPercent((results.minorSpecies.phosphate.PO4 / results.TA) * 100, 2) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Phosphate alkalinity
-                  </div>
-                </div>
-                <span class="hidden md:inline">Phosphate alkalinity</span>
-              </div>
-            </td>
-          </tr>
+          <SpeciesRow
+            v-if="results.minorSpecies"
+            species="B(OH)₄⁻"
+            :percent="`${formatPercent((results.minorSpecies.borate / results.TA) * 100, 2)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.minorSpecies.borate, displaySpeciesUnit), 'minor')"
+            role="Borate ion, ~2% of alkalinity"
+          />
+          <SpeciesRow
+            v-if="results.minorSpecies"
+            species="OH⁻"
+            :percent="`${formatPercent((results.minorSpecies.hydroxide / results.TA) * 100, 2)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.minorSpecies.hydroxide, displaySpeciesUnit), 'minor')"
+            role="Hydroxide, increases with pH"
+          />
+          <SpeciesRow
+            v-if="results.minorSpecies && results.minorSpecies.silicate.SiO_OH3 > 0.01"
+            species="SiO(OH)₃⁻"
+            :percent="`${formatPercent((results.minorSpecies.silicate.SiO_OH3 / results.TA) * 100, 2)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.minorSpecies.silicate.SiO_OH3, displaySpeciesUnit), 'minor')"
+            role="Silicate alkalinity"
+          />
+          <SpeciesRow
+            v-if="results.minorSpecies && results.minorSpecies.phosphate.HPO4 > 0.01"
+            species="HPO₄²⁻"
+            :percent="`${formatPercent((results.minorSpecies.phosphate.HPO4 / results.TA) * 100, 2)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.minorSpecies.phosphate.HPO4, displaySpeciesUnit), 'minor')"
+            role="Phosphate alkalinity"
+          />
+          <SpeciesRow
+            v-if="results.minorSpecies && results.minorSpecies.phosphate.PO4 > 0.01"
+            species="PO₄³⁻"
+            :percent="`${formatPercent((results.minorSpecies.phosphate.PO4 / results.TA) * 100, 2)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.minorSpecies.phosphate.PO4, displaySpeciesUnit), 'minor')"
+            role="Phosphate alkalinity"
+          />
 
           <!-- Negative Contributors -->
           <tr class="bg-orange-50" v-if="results.minorSpecies">
-            <td colspan="4" class="px-4 py-2 font-semibold text-gray-700">Negative Alkalinity Contributors</td>
+            <td colspan="3" class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-400">Negative Alkalinity Contributors</td>
           </tr>
-          <tr class="hover:bg-gray-50" v-if="results.minorSpecies">
-            <td class="px-4 py-2">H⁺</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.minorSpecies.hydrogen, 'minor') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatNegativePercent((results.minorSpecies.hydrogen / results.TA) * 100, 3) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Free protons
-                  </div>
-                </div>
-                <span class="hidden md:inline">Free protons</span>
-              </div>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50" v-if="results.minorSpecies">
-            <td class="px-4 py-2">HSO₄⁻</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.minorSpecies.bisulfate, 'minor') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatNegativePercent((results.minorSpecies.bisulfate / results.TA) * 100, 3) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Bisulfate
-                  </div>
-                </div>
-                <span class="hidden md:inline">Bisulfate</span>
-              </div>
-            </td>
-          </tr>
-          <tr class="hover:bg-gray-50" v-if="results.minorSpecies">
-            <td class="px-4 py-2">HF</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.minorSpecies.hf, 'minor') }}</td>
-            <td class="px-4 py-2 text-right font-mono">{{ formatNegativePercent((results.minorSpecies.hf / results.TA) * 100, 4) }}%</td>
-            <td class="px-4 py-2 text-gray-600 text-xs">
-              <div class="flex items-center gap-1">
-                <div class="relative group md:hidden">
-                  <InformationCircleIcon class="w-4 h-4 text-blue-600 hover:text-blue-800 cursor-help" />
-                  <div class="invisible group-hover:visible absolute right-0 top-6 z-10 w-48 p-2 bg-gray-800 text-white text-xs rounded shadow-lg pointer-events-none">
-                    Hydrogen fluoride
-                  </div>
-                </div>
-                <span class="hidden md:inline">Hydrogen fluoride</span>
-              </div>
-            </td>
-          </tr>
+          <SpeciesRow
+            v-if="results.minorSpecies"
+            species="H⁺"
+            :percent="`${formatNegativePercent((results.minorSpecies.hydrogen / results.TA) * 100, 3)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.minorSpecies.hydrogen, displaySpeciesUnit), 'minor')"
+            role="Free protons"
+          />
+          <SpeciesRow
+            v-if="results.minorSpecies"
+            species="HSO₄⁻"
+            :percent="`${formatNegativePercent((results.minorSpecies.bisulfate / results.TA) * 100, 3)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.minorSpecies.bisulfate, displaySpeciesUnit), 'minor')"
+            role="Bisulfate"
+            :stripe="true"
+          />
+          <SpeciesRow
+            v-if="results.minorSpecies"
+            species="HF"
+            :percent="`${formatNegativePercent((results.minorSpecies.hf / results.TA) * 100, 4)}%`"
+            :concentration="formatValue(convertSpeciesConcentration(results.minorSpecies.hf, displaySpeciesUnit), 'minor')"
+            role="Hydrogen fluoride"
+          />
         </tbody>
-      </table>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+        <label class="text-sm font-medium text-gray-700">Concentration Unit:</label>
+        <select
+          v-model="displaySpeciesUnit"
+          class="px-4 py-2 text-sm border rounded-lg bg-white min-w-[140px]"
+        >
+          <option value="µmol/kg">µmol/kg</option>
+          <option value="mmol/kg">mmol/kg</option>
+        </select>
+      </div>
     </div>
 
     <div class="mt-4 text-xs text-gray-600 bg-gray-50 p-3 rounded">
@@ -213,9 +125,10 @@
 </template>
 
 <script setup>
-import { formatValue } from '../../../utils/carbonate/index.js'
+import { ref } from 'vue'
+import { formatValue, convertConcentration } from '../../../utils/carbonate/index.js'
 import CardSection from '../../../components/CardSection.vue'
-import { InformationCircleIcon } from '@heroicons/vue/24/solid'
+import SpeciesRow from './SpeciesRow.vue'
 
 defineProps({
   results: { type: Object, required: true },
@@ -223,6 +136,12 @@ defineProps({
 })
 
 defineEmits(['update:collapsed'])
+
+const displaySpeciesUnit = ref('µmol/kg')
+
+function convertSpeciesConcentration(value, toUnit) {
+  return convertConcentration(value, 'µmol/kg', toUnit)
+}
 
 function formatPercent(value, decimals) {
   const formatted = value.toFixed(decimals)
@@ -234,3 +153,9 @@ function formatNegativePercent(value, decimals) {
   return '-' + formatted
 }
 </script>
+
+<style scoped>
+:deep(tbody tr:last-child td) {
+  border-bottom: none !important;
+}
+</style>

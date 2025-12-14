@@ -13,7 +13,7 @@ export const PARAMETER_TYPES = {
     name: 'pH',
     description: 'Measure of acidity/alkalinity',
     units: ['total', 'sws', 'free', 'nbs'],
-    defaultUnit: 'total',
+    defaultUnit: 'nbs',
     typical: { min: 7.8, max: 8.4, reef: 8.1 },
     category: 'measured'
   },
@@ -30,8 +30,8 @@ export const PARAMETER_TYPES = {
     id: 'DIC',
     name: 'Dissolved Inorganic Carbon',
     description: 'Total dissolved CO2 species',
-    units: ['µmol/kg', 'mmol/kg'],
-    defaultUnit: 'µmol/kg',
+    units: ['µmol/kg', 'mmol/kg', 'dKH'],
+    defaultUnit: 'mmol/kg',
     typical: { min: 1800, max: 2200, reef: 2000 }, // µmol/kg
     category: 'calculated'
   },

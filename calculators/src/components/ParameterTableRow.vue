@@ -1,6 +1,17 @@
 <template>
-  <tr class="hover:bg-gray-50">
+  <tr class="even:bg-gray-50 hover:bg-gray-100">
     <td class="px-4 py-2">{{ label }}</td>
+    <td class="px-4 py-2 text-right font-mono">{{ beforeValue }}</td>
+    <td class="px-4 py-2 text-right font-mono">
+      <span :class="valueColorClass" class="inline-flex items-center gap-1">
+        <component
+          :is="arrowIcon"
+          class="w-4 h-4"
+          v-if="arrowIcon"
+        />
+        {{ afterValue }}
+      </span>
+    </td>
     <td class="px-4 py-2" :class="unitOptions ? '' : 'text-center text-gray-500'">
       <select
         v-if="unitOptions"
@@ -17,17 +28,6 @@
         </option>
       </select>
       <span v-else>{{ unit }}</span>
-    </td>
-    <td class="px-4 py-2 text-right font-mono">{{ beforeValue }}</td>
-    <td class="px-4 py-2 text-right font-mono">
-      <span :class="valueColorClass" class="inline-flex items-center gap-1">
-        <component
-          :is="arrowIcon"
-          class="w-4 h-4"
-          v-if="arrowIcon"
-        />
-        {{ afterValue }}
-      </span>
     </td>
   </tr>
 </template>

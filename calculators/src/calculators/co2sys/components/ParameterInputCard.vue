@@ -29,12 +29,14 @@
             Value
           </label>
           <input
-            :value="value"
-            @input="$emit('update:value', parseFloat($event.target.value))"
+            v-model="localValue"
             type="number"
             :step="getStep(parameter)"
             class="w-full px-3 py-2 border rounded-lg"
             :placeholder="getPlaceholder(parameter)"
+            @focus="handleFocus"
+            @blur="handleBlur"
+            @keydown.enter="handleBlur"
           />
         </div>
 
@@ -75,7 +77,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { PARAMETER_TYPES, getTooltip, validateParameter } from '../../../utils/carbonate/index.js'
 
 const props = defineProps({
@@ -87,6 +89,16 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:parameter', 'update:value', 'update:unit'])
+
+const localValue = ref(props.value)
+const isFocused = ref(false)
+
+// Only sync when not focused (not actively typing)
+watch(() => props.value, (newValue) => {
+  if (!isFocused.value) {
+    localValue.value = newValue
+  }
+})
 
 // Available parameters (exclude the other parameter)
 const availableParameters = computed(() => {
@@ -114,6 +126,17 @@ const isOutOfRange = computed(() => {
 })
 
 // Helper functions
+function handleFocus() {
+  isFocused.value = true
+}
+
+function handleBlur() {
+  isFocused.value = false
+  if (localValue.value !== props.value) {
+    emit('update:value', localValue.value || null)
+  }
+}
+
 function getStep(paramType) {
   const steps = {
     pH: 0.01,

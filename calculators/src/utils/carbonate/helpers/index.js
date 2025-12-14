@@ -8,7 +8,8 @@
 export {
   convertAlkalinity,
   convertConcentration,
-  convertpCO2
+  convertpCO2,
+  convertPressure
 } from './units.js'
 
 // Formatting

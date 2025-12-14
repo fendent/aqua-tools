@@ -87,10 +87,10 @@
             </tr>
             <tr class="even:bg-gray-50 hover:bg-gray-100">
               <td class="px-4 py-2">pCO₂</td>
-              <td class="px-4 py-2 text-right font-mono">{{ displaypCO2Value }}</td>
+              <td class="px-4 py-2 text-right font-mono">{{ displayPCO2Value }}</td>
               <td class="px-4 py-2">
                 <select
-                  v-model="displaypCO2Unit"
+                  v-model="displayPCO2Unit"
                   class="w-full px-2 py-1 text-xs border rounded bg-white"
                 >
                   <option value="µatm">µatm</option>
@@ -141,7 +141,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { formatValue, convertAlkalinity, convertConcentration, convertpCO2 } from '../../../utils/carbonate/index.js'
+import { formatValue, convertAlkalinity, convertConcentration, convertpCO2, convertPressure } from '../../../utils/carbonate/index.js'
 import CardSection from '../../../components/CardSection.vue'
 import SpeciesDistributionTable from './SpeciesDistributionTable.vue'
 import MineralSaturationStates from './MineralSaturationStates.vue'
@@ -150,6 +150,8 @@ import CalculationMethods from './CalculationMethods.vue'
 const props = defineProps({
   results: { type: Object, required: true },
   phScale: { type: String, default: 'total' },
+  inputParams: { type: Object, default: null },
+  pressure: { type: Number, required: true },
   phValuesCollapsed: { type: Boolean, default: false },
   mainParametersCollapsed: { type: Boolean, default: false },
   speciesDistributionCollapsed: { type: Boolean, default: false },
@@ -161,7 +163,7 @@ defineEmits(['export', 'update:phValuesCollapsed', 'update:mainParametersCollaps
 
 const displayTAUnit = ref('dKH')
 const displayDICUnit = ref('mmol/kg')
-const displaypCO2Unit = ref('µatm')
+const displayPCO2Unit = ref('µatm')
 
 function convertTA(value, toUnit) {
   return convertAlkalinity(value, 'µmol/kg', toUnit)
@@ -171,19 +173,42 @@ function convertDIC(value, toUnit) {
   return convertConcentration(value, 'µmol/kg', toUnit)
 }
 
-function convertpCO2Value(value, toUnit) {
-  return convertpCO2(value, 'µatm', toUnit)
+function convertPCO2(value, toUnit) {
+  // Convert pressure from bar to atm for pCO2 conversion
+  const pressureInAtm = convertPressure(props.pressure, 'bar', 'atm')
+  return convertpCO2(value, 'µatm', toUnit, pressureInAtm)
 }
 
 const displayTAValue = computed(() => {
+  // If displaying in the same unit as the input, show the original input value
+  if (props.inputParams && props.inputParams.param1Type === 'TA' && props.inputParams.param1Unit === displayTAUnit.value) {
+    return formatValue(props.inputParams.param1Value, 'TA')
+  }
+  if (props.inputParams && props.inputParams.param2Type === 'TA' && props.inputParams.param2Unit === displayTAUnit.value) {
+    return formatValue(props.inputParams.param2Value, 'TA')
+  }
   return formatValue(convertTA(props.results.TA, displayTAUnit.value), 'TA')
 })
 
 const displayDICValue = computed(() => {
+  // If displaying in the same unit as the input, show the original input value
+  if (props.inputParams && props.inputParams.param1Type === 'DIC' && props.inputParams.param1Unit === displayDICUnit.value) {
+    return formatValue(props.inputParams.param1Value, 'DIC')
+  }
+  if (props.inputParams && props.inputParams.param2Type === 'DIC' && props.inputParams.param2Unit === displayDICUnit.value) {
+    return formatValue(props.inputParams.param2Value, 'DIC')
+  }
   return formatValue(convertDIC(props.results.DIC, displayDICUnit.value), 'DIC')
 })
 
-const displaypCO2Value = computed(() => {
-  return formatValue(convertpCO2Value(props.results.pCO2, displaypCO2Unit.value), 'pCO2')
+const displayPCO2Value = computed(() => {
+  // If displaying in the same unit as the input, show the original input value
+  if (props.inputParams && props.inputParams.param1Type === 'pCO2' && props.inputParams.param1Unit === displayPCO2Unit.value) {
+    return formatValue(props.inputParams.param1Value, 'pCO2')
+  }
+  if (props.inputParams && props.inputParams.param2Type === 'pCO2' && props.inputParams.param2Unit === displayPCO2Unit.value) {
+    return formatValue(props.inputParams.param2Value, 'pCO2')
+  }
+  return formatValue(convertPCO2(props.results.pCO2, displayPCO2Unit.value), 'pCO2')
 })
 </script>

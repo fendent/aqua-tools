@@ -75,15 +75,21 @@ export function convertConcentration(value, fromUnit, toUnit) {
  * @param {number} value - pCO2 value
  * @param {string} fromUnit - Source unit
  * @param {string} toUnit - Target unit
+ * @param {number} totalPressure - Total pressure in atm (default: 1)
  * @returns {number} Converted value
  */
-export function convertpCO2(value, fromUnit, toUnit) {
+export function convertpCO2(value, fromUnit, toUnit, totalPressure = 1) {
   if (fromUnit === toUnit) return value
 
-  // µatm and ppm are approximately equal for atmospheric purposes
-  if ((fromUnit === 'µatm' && toUnit === 'ppm') ||
-      (fromUnit === 'ppm' && toUnit === 'µatm')) {
-    return value
+  // Convert between µatm (partial pressure) and ppm (volume fraction)
+  // ppm = (pCO2_atm / total_pressure) × 10^6
+  // µatm = pCO2_atm × 10^6
+  if (fromUnit === 'µatm' && toUnit === 'ppm') {
+    // µatm to ppm: divide by total pressure
+    return value / totalPressure
+  } else if (fromUnit === 'ppm' && toUnit === 'µatm') {
+    // ppm to µatm: multiply by total pressure
+    return value * totalPressure
   }
 
   return value
@@ -138,14 +144,18 @@ export function convertCalcium(value, fromUnit, toUnit) {
 export function convertPressure(value, fromUnit, toUnit) {
   if (fromUnit === toUnit) return value
 
-  // Conversion factors
+  // Base conversion: 1 atm = 1.01325 bar = 10.1325 dbar
+  const ATM_TO_BAR = 1.01325
+  const BAR_TO_DBAR = 10
+
+  // Conversion factors (calculated to avoid precision loss)
   const conversions = {
-    'bar_to_atm': 0.986923,
-    'atm_to_bar': 1.01325,
-    'bar_to_dbar': 10,
-    'dbar_to_bar': 0.1,
-    'atm_to_dbar': 10.1325,
-    'dbar_to_atm': 0.0986923
+    'bar_to_atm': 1 / ATM_TO_BAR,
+    'atm_to_bar': ATM_TO_BAR,
+    'bar_to_dbar': BAR_TO_DBAR,
+    'dbar_to_bar': 1 / BAR_TO_DBAR,
+    'atm_to_dbar': ATM_TO_BAR * BAR_TO_DBAR,
+    'dbar_to_atm': 1 / (ATM_TO_BAR * BAR_TO_DBAR)
   }
 
   const key = `${fromUnit}_to_${toUnit}`

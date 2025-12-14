@@ -214,6 +214,8 @@
             v-if="results"
             :results="results"
             :ph-scale="pHScale"
+            :input-params="{ param1Type, param1Value, param1Unit, param2Type, param2Value, param2Unit }"
+            :pressure="pressure"
             v-model:ph-values-collapsed="pHValuesCollapsed"
             v-model:main-parameters-collapsed="mainParametersCollapsed"
             v-model:species-distribution-collapsed="speciesDistributionCollapsed"

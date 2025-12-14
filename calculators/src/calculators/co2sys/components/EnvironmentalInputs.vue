@@ -7,11 +7,13 @@
       </label>
       <div class="grid grid-cols-2 gap-2">
         <input
-          :value="displayTemperature"
-          @input="handleTemperatureInput"
+          v-model="localTemperature"
           type="number"
           step="0.1"
           class="w-full px-3 py-2 border rounded-lg"
+          @focus="temperatureFocused = true"
+          @blur="handleTemperatureBlur"
+          @keydown.enter="handleTemperatureBlur"
         />
         <select
           v-model="tempUnit"
@@ -33,12 +35,14 @@
       </label>
       <div class="grid grid-cols-2 gap-2">
         <input
-          :value="displaySalinity"
-          @input="handleSalinityInput"
+          v-model="localSalinity"
           type="number"
           :step="salinityUnit === 'SG' ? 0.001 : 0.1"
           min="0"
           class="w-full px-3 py-2 border rounded-lg"
+          @focus="salinityFocused = true"
+          @blur="handleSalinityBlur"
+          @keydown.enter="handleSalinityBlur"
         />
         <select
           v-model="salinityUnit"
@@ -61,12 +65,14 @@
       </label>
       <div class="grid grid-cols-2 gap-2">
         <input
-          :value="displayPressure"
-          @input="handlePressureInput"
+          v-model="localPressure"
           type="number"
           step="0.1"
           min="0"
           class="w-full px-3 py-2 border rounded-lg"
+          @focus="handlePressureFocus"
+          @blur="handlePressureBlur"
+          @keydown.enter="handlePressureBlur"
         />
         <select
           v-model="pressureUnit"
@@ -89,13 +95,15 @@
       </label>
       <div class="grid grid-cols-2 gap-2">
         <input
-          :value="displayCalcium"
-          @input="handleCalciumInput"
+          v-model="localCalcium"
           type="number"
           step="0.1"
           min="0"
           placeholder="Auto-calculated from salinity"
           class="w-full px-3 py-2 border rounded-lg"
+          @focus="calciumFocused = true"
+          @blur="handleCalciumBlur"
+          @keydown.enter="handleCalciumBlur"
         />
         <select
           v-model="calciumUnit"
@@ -113,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { convertTemperature, convertCalcium, convertPressure, convertSalinity } from '../../../utils/carbonate/helpers/units.js'
 
 const props = defineProps({
@@ -137,50 +145,114 @@ watch(salinityUnit, (newValue) => localStorage.setItem('co2sys-salinityUnit', ne
 watch(pressureUnit, (newValue) => localStorage.setItem('co2sys-pressureUnit', newValue))
 watch(calciumUnit, (newValue) => localStorage.setItem('co2sys-calciumUnit', newValue))
 
-// Display values (converted from base units)
-const displayTemperature = computed(() => {
-  return convertTemperature(props.temperature, '°C', tempUnit.value)
+// Local values for editing (prevents re-calculation while typing)
+const localTemperature = ref(convertTemperature(props.temperature, '°C', tempUnit.value))
+const localSalinity = ref(convertSalinity(props.salinity, 'PSU', salinityUnit.value))
+const localPressure = ref(convertPressure(props.pressure, 'bar', pressureUnit.value))
+const localCalcium = ref(props.calcium === null ? '' : convertCalcium(props.calcium, 'mmol/kg', calciumUnit.value))
+
+// Track original user input to avoid precision loss on round-trip conversions
+const originalPressureValue = ref(null)
+const originalPressureUnit = ref(null)
+
+// Focus tracking
+const temperatureFocused = ref(false)
+const salinityFocused = ref(false)
+const pressureFocused = ref(false)
+const calciumFocused = ref(false)
+
+// Sync local values from props when not focused
+watch(() => props.temperature, (newValue) => {
+  if (!temperatureFocused.value) {
+    localTemperature.value = convertTemperature(newValue, '°C', tempUnit.value)
+  }
 })
 
-const displaySalinity = computed(() => {
-  return convertSalinity(props.salinity, 'PSU', salinityUnit.value)
+watch(() => props.salinity, (newValue) => {
+  if (!salinityFocused.value) {
+    localSalinity.value = convertSalinity(newValue, 'PSU', salinityUnit.value)
+  }
 })
 
-const displayPressure = computed(() => {
-  return convertPressure(props.pressure, 'bar', pressureUnit.value)
+watch(() => props.pressure, (newValue) => {
+  if (!pressureFocused.value) {
+    // If displaying in the original unit the user typed, use the original value
+    if (originalPressureUnit.value === pressureUnit.value && originalPressureValue.value !== null) {
+      localPressure.value = originalPressureValue.value
+    } else {
+      localPressure.value = convertPressure(newValue, 'bar', pressureUnit.value)
+    }
+  }
 })
 
-const displayCalcium = computed(() => {
-  if (props.calcium === null) return ''
-  return convertCalcium(props.calcium, 'mmol/kg', calciumUnit.value)
+watch(() => props.calcium, (newValue) => {
+  if (!calciumFocused.value) {
+    localCalcium.value = newValue === null ? '' : convertCalcium(newValue, 'mmol/kg', calciumUnit.value)
+  }
 })
 
-// Input handlers (convert to base units before emitting)
-function handleTemperatureInput(event) {
-  const displayValue = parseFloat(event.target.value)
-  const baseValue = convertTemperature(displayValue, tempUnit.value, '°C')
+// Update local values when units change
+watch(tempUnit, () => {
+  if (!temperatureFocused.value) {
+    localTemperature.value = convertTemperature(props.temperature, '°C', tempUnit.value)
+  }
+})
+
+watch(salinityUnit, () => {
+  if (!salinityFocused.value) {
+    localSalinity.value = convertSalinity(props.salinity, 'PSU', salinityUnit.value)
+  }
+})
+
+watch(pressureUnit, (newUnit) => {
+  if (!pressureFocused.value) {
+    // If switching back to the original unit the user typed, use the original value
+    if (originalPressureUnit.value === newUnit && originalPressureValue.value !== null) {
+      localPressure.value = originalPressureValue.value
+    } else {
+      localPressure.value = convertPressure(props.pressure, 'bar', newUnit)
+    }
+  }
+})
+
+watch(calciumUnit, () => {
+  if (!calciumFocused.value) {
+    localCalcium.value = props.calcium === null ? '' : convertCalcium(props.calcium, 'mmol/kg', calciumUnit.value)
+  }
+})
+
+// Blur handlers (convert to base units before emitting)
+function handleTemperatureBlur() {
+  temperatureFocused.value = false
+  const baseValue = convertTemperature(parseFloat(localTemperature.value), tempUnit.value, '°C')
   emit('update:temperature', baseValue)
 }
 
-function handleSalinityInput(event) {
-  const displayValue = parseFloat(event.target.value)
-  const baseValue = convertSalinity(displayValue, salinityUnit.value, 'PSU')
+function handleSalinityBlur() {
+  salinityFocused.value = false
+  const baseValue = convertSalinity(parseFloat(localSalinity.value), salinityUnit.value, 'PSU')
   emit('update:salinity', baseValue)
 }
 
-function handlePressureInput(event) {
-  const displayValue = parseFloat(event.target.value)
-  const baseValue = convertPressure(displayValue, pressureUnit.value, 'bar')
+function handlePressureFocus() {
+  pressureFocused.value = true
+}
+
+function handlePressureBlur() {
+  pressureFocused.value = false
+  // Store the user's input as the original to avoid precision loss
+  originalPressureValue.value = parseFloat(localPressure.value)
+  originalPressureUnit.value = pressureUnit.value
+  const baseValue = convertPressure(originalPressureValue.value, pressureUnit.value, 'bar')
   emit('update:pressure', baseValue)
 }
 
-function handleCalciumInput(event) {
-  const value = event.target.value
-  if (value === '') {
+function handleCalciumBlur() {
+  calciumFocused.value = false
+  if (localCalcium.value === '') {
     emit('update:calcium', null)
   } else {
-    const displayValue = parseFloat(value)
-    const baseValue = convertCalcium(displayValue, calciumUnit.value, 'mmol/kg')
+    const baseValue = convertCalcium(parseFloat(localCalcium.value), calciumUnit.value, 'mmol/kg')
     emit('update:calcium', baseValue)
   }
 }

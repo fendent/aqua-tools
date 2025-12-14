@@ -15,13 +15,10 @@
           @blur="handleTemperatureBlur"
           @keydown.enter="handleTemperatureBlur"
         />
-        <select
+        <TemperatureUnitSelect
           v-model="tempUnit"
-          class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
-        >
-          <option value="°C">°C</option>
-          <option value="°F">°F</option>
-        </select>
+          select-class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
+        />
       </div>
       <p class="text-xs text-gray-500 mt-1">
         Typical reef: 24-26°C (75-79°F). Affects all equilibrium constants.
@@ -44,14 +41,10 @@
           @blur="handleSalinityBlur"
           @keydown.enter="handleSalinityBlur"
         />
-        <select
+        <SalinityUnitSelect
           v-model="salinityUnit"
-          class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
-        >
-          <option value="PSU">PSU</option>
-          <option value="ppt">ppt</option>
-          <option value="SG">SG</option>
-        </select>
+          select-class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
+        />
       </div>
       <p class="text-xs text-gray-500 mt-1">
         Typical seawater: 35 PSU / 1.0257 SG. Reef tanks: 33-36 PSU.
@@ -74,14 +67,10 @@
           @blur="handlePressureBlur"
           @keydown.enter="handlePressureBlur"
         />
-        <select
+        <PressureUnitSelect
           v-model="pressureUnit"
-          class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
-        >
-          <option value="bar">bar</option>
-          <option value="atm">atm</option>
-          <option value="dbar">dbar</option>
-        </select>
+          select-class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
+        />
       </div>
       <p class="text-xs text-gray-500 mt-1">
         Surface = 0. Increases ~1 bar per 10m depth. Usually 0 for aquariums.
@@ -105,13 +94,10 @@
           @blur="handleCalciumBlur"
           @keydown.enter="handleCalciumBlur"
         />
-        <select
+        <CalciumUnitSelect
           v-model="calciumUnit"
-          class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
-        >
-          <option value="mmol/kg">mmol/kg</option>
-          <option value="ppm">ppm</option>
-        </select>
+          select-class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
+        />
       </div>
       <p class="text-xs text-gray-500 mt-1">
         Leave empty for automatic calculation. Typical reef: 10-11 mmol/kg (400-450 ppm).
@@ -123,6 +109,11 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { convertTemperature, convertCalcium, convertPressure, convertSalinity } from '../../../utils/carbonate/helpers/units.js'
+import { useLocalStorageRef } from '../../../composables/useLocalStorageRef.js'
+import TemperatureUnitSelect from '../../../components/TemperatureUnitSelect.vue'
+import SalinityUnitSelect from '../../../components/SalinityUnitSelect.vue'
+import PressureUnitSelect from '../../../components/PressureUnitSelect.vue'
+import CalciumUnitSelect from '../../../components/CalciumUnitSelect.vue'
 
 const props = defineProps({
   temperature: { type: Number, required: true },
@@ -134,16 +125,10 @@ const props = defineProps({
 const emit = defineEmits(['update:temperature', 'update:salinity', 'update:pressure', 'update:calcium'])
 
 // Unit states with localStorage persistence
-const tempUnit = ref(localStorage.getItem('co2sys-tempUnit') || '°C')
-const salinityUnit = ref(localStorage.getItem('co2sys-salinityUnit') || 'PSU')
-const pressureUnit = ref(localStorage.getItem('co2sys-pressureUnit') || 'bar')
-const calciumUnit = ref(localStorage.getItem('co2sys-calciumUnit') || 'mmol/kg')
-
-// Save unit preferences to localStorage
-watch(tempUnit, (newValue) => localStorage.setItem('co2sys-tempUnit', newValue))
-watch(salinityUnit, (newValue) => localStorage.setItem('co2sys-salinityUnit', newValue))
-watch(pressureUnit, (newValue) => localStorage.setItem('co2sys-pressureUnit', newValue))
-watch(calciumUnit, (newValue) => localStorage.setItem('co2sys-calciumUnit', newValue))
+const tempUnit = useLocalStorageRef('co2sys-tempUnit', '°C')
+const salinityUnit = useLocalStorageRef('co2sys-salinityUnit', 'PSU')
+const pressureUnit = useLocalStorageRef('co2sys-pressureUnit', 'bar')
+const calciumUnit = useLocalStorageRef('co2sys-calciumUnit', 'mmol/kg')
 
 // Local values for editing (prevents re-calculation while typing)
 const localTemperature = ref(convertTemperature(props.temperature, '°C', tempUnit.value))

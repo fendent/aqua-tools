@@ -12,25 +12,80 @@
       <!-- Left Column: Inputs -->
       <div class="space-y-6">
         <CardSection title="Current Tank Parameters" :collapsible="true" v-model:collapsed="tankParamsCollapsed">
+          <template #header-actions>
+            <ResetButton @click="resetTankParameters" />
+          </template>
           <div class="space-y-4">
-            <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-              <div class="font-medium text-blue-900 mb-2">Environmental Conditions (from main calculator)</div>
-              <div class="grid grid-cols-3 gap-2 text-blue-800">
-                <div>Temp: {{ temperature }}°C</div>
-                <div>Salinity: {{ salinity }}</div>
-                <div>pH Scale: {{ phScale }}</div>
+            <div class="grid md:grid-cols-3 gap-4 items-end">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Tank Volume
+                </label>
+                <input
+                  v-model.number="tankVolume"
+                  type="number"
+                  :step="getVolumeStep(tankVolumeUnit)"
+                  min="0.1"
+                  class="w-full px-3 py-2 border rounded-lg"
+                  @focus="tankVolumeFocused = true"
+                  @blur="handleTankVolumeBlur"
+                  @keydown.enter="handleTankVolumeBlur"
+                />
+              </div>
+              <div>
+                <VolumeUnitSelect
+                  :model-value="tankVolumeUnit"
+                  @update:model-value="tankVolumeUnit = $event"
+                />
               </div>
             </div>
 
-            <VolumeInput
-              v-model="tankVolume"
-              v-model:unit="tankVolumeUnit"
-              label="Tank Volume"
-              :step="getVolumeStep(tankVolumeUnit)"
-              min="0.1"
-              grid-class="grid md:grid-cols-3 gap-4 items-end"
-              input-col-class="md:col-span-2"
-            />
+            <div class="grid md:grid-cols-3 gap-4 items-end">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Temperature
+                </label>
+                <input
+                  v-model.number="localTemperature"
+                  type="number"
+                  step="0.1"
+                  class="w-full px-3 py-2 border rounded-lg"
+                  @focus="temperatureFocused = true"
+                  @blur="handleTemperatureBlur"
+                  @keydown.enter="handleTemperatureBlur"
+                />
+              </div>
+              <div>
+                <TemperatureUnitSelect
+                  v-model="temperatureUnit"
+                  select-class="w-full px-3 py-2 border rounded-lg bg-white"
+                />
+              </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-4 items-end">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Salinity
+                </label>
+                <input
+                  v-model.number="localSalinity"
+                  type="number"
+                  :step="salinityUnit === 'SG' ? 0.001 : 0.1"
+                  min="0"
+                  class="w-full px-3 py-2 border rounded-lg"
+                  @focus="salinityFocused = true"
+                  @blur="handleSalinityBlur"
+                  @keydown.enter="handleSalinityBlur"
+                />
+              </div>
+              <div>
+                <SalinityUnitSelect
+                  v-model="salinityUnit"
+                  select-class="w-full px-3 py-2 border rounded-lg bg-white"
+                />
+              </div>
+            </div>
 
             <div class="grid md:grid-cols-3 gap-4 items-end">
               <div class="md:col-span-2">
@@ -44,6 +99,10 @@
                   class="w-full px-3 py-2 border rounded-lg"
                 />
               </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+                <PHScaleSelect v-model="currentPHScale" />
+              </div>
             </div>
 
             <div class="grid md:grid-cols-3 gap-4 items-end">
@@ -56,17 +115,14 @@
                   type="number"
                   step="0.1"
                   class="w-full px-3 py-2 border rounded-lg"
+                  @focus="alkFocused = true"
+                  @blur="handleAlkBlur"
+                  @keydown.enter="handleAlkBlur"
                 />
               </div>
               <div>
-                <select
-                  v-model="alkUnit"
-                  class="w-full px-3 py-2 border rounded-lg bg-white"
-                >
-                  <option value="dKH">dKH</option>
-                  <option value="meq/L">meq/L</option>
-                  <option value="µmol/kg">µmol/kg</option>
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+                <AlkalinityUnitSelect v-model="alkUnit" />
               </div>
             </div>
 
@@ -81,22 +137,23 @@
                   step="1"
                   class="w-full px-3 py-2 border rounded-lg"
                   placeholder="420"
+                  @focus="calciumFocused = true"
+                  @blur="handleCalciumBlur"
+                  @keydown.enter="handleCalciumBlur"
                 />
               </div>
               <div>
-                <select
-                  v-model="calciumUnit"
-                  class="w-full px-3 py-2 border rounded-lg bg-white"
-                >
-                  <option value="ppm">ppm</option>
-                  <option value="ppt">ppt</option>
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+                <CalciumUnitSelect v-model="calciumUnit" />
               </div>
             </div>
           </div>
         </CardSection>
 
         <CardSection title="Dosing Supplement" :collapsible="true" v-model:collapsed="dosingSupplementCollapsed">
+          <template #header-actions>
+            <ResetButton @click="resetDosingSupplementValues" />
+          </template>
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -224,6 +281,9 @@
         </CardSection>
 
         <CardSection title="Dose Configuration" :collapsible="true" v-model:collapsed="doseConfigCollapsed">
+          <template #header-actions>
+            <ResetButton @click="resetDoseConfiguration" />
+          </template>
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
@@ -328,8 +388,39 @@
             </div>
           </CardSection>
 
+          <!-- Impact Summary -->
+          <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="flex items-start gap-3">
+              <InformationCircleIcon class="w-6 h-6 flex-shrink-0 mt-0.5 text-blue-600" />
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-blue-900 mb-3">Impact Summary</p>
+                <ul class="text-sm text-blue-800 space-y-2">
+                  <li class="flex items-start gap-2">
+                    <span class="text-blue-600 font-bold mt-0.5">•</span>
+                    <span>pH will {{ simulationResults.newpH > currentpH ? 'increase' : 'decrease' }} by {{ Math.abs(simulationResults.newpH - currentpH).toFixed(3) }} units</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-blue-600 font-bold mt-0.5">•</span>
+                    <span>Aragonite Ω will {{ simulationResults.newState.omegaAragonite > simulationResults.currentState.omegaAragonite ? 'increase' : 'decrease' }} by {{ Math.abs(simulationResults.newState.omegaAragonite - simulationResults.currentState.omegaAragonite).toFixed(2) }}</span>
+                  </li>
+                  <li class="flex items-start gap-2">
+                    <span class="text-blue-600 font-bold mt-0.5">•</span>
+                    <span>pCO₂ will {{ simulationResults.newState.pCO2 > simulationResults.currentState.pCO2 ? 'increase' : 'decrease' }} by {{ Math.abs(simulationResults.newState.pCO2 - simulationResults.currentState.pCO2).toFixed(0) }} µatm</span>
+                  </li>
+                  <li v-if="doseParameter === 'alkalinity'" class="flex items-start gap-2">
+                    <span class="text-blue-600 font-bold mt-0.5">•</span>
+                    <span>Carbonate (CO₃²⁻) will {{ simulationResults.newState.fCO3 > simulationResults.currentState.fCO3 ? 'increase' : 'decrease' }} from {{ (simulationResults.currentState.fCO3 * 100).toFixed(1) }}% to {{ (simulationResults.newState.fCO3 * 100).toFixed(1) }}%</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           <!-- Main Parameters -->
           <CardSection title="Main Parameters" :collapsible="true" v-model:collapsed="mainParamsCollapsed">
+            <template #header-actions>
+              <ResetButton @click="resetMainParametersUnits" title="Reset units to defaults" />
+            </template>
             <div class="border border-gray-400 rounded-lg overflow-hidden">
               <table class="w-full text-sm table-fixed">
                 <thead class="bg-gray-200">
@@ -343,16 +434,18 @@
                 <tbody class="divide-y divide-gray-400">
                 <ParameterTableRow
                   label="pH"
-                  :before-value="currentpH.toFixed(3)"
-                  :after-value="simulationResults.newpH.toFixed(3)"
-                  unit="—"
+                  :before-value="displayCurrentPH"
+                  :after-value="displayNewPH"
+                  :unit="displayPHScale"
+                  unit-selector-type="phScale"
+                  @update:unit="displayPHScale = $event"
                 />
                 <ParameterTableRow
                   label="Alkalinity"
                   :before-value="displayCurrentAlk"
                   :after-value="displayNewAlk"
                   :unit="displayAlkUnit"
-                  :unit-options="alkUnitOptions"
+                  unit-selector-type="alkalinity"
                   @update:unit="displayAlkUnit = $event"
                 />
                 <ParameterTableRow
@@ -360,7 +453,7 @@
                   :before-value="displayCurrentCalcium"
                   :after-value="displayNewCalcium"
                   :unit="displayCalciumUnit"
-                  :unit-options="calciumUnitOptions"
+                  unit-selector-type="calcium"
                   @update:unit="displayCalciumUnit = $event"
                 />
                 <ParameterTableRow
@@ -368,7 +461,7 @@
                   :before-value="displayCurrentPCO2"
                   :after-value="displayNewPCO2"
                   :unit="pco2Unit"
-                  :unit-options="pco2UnitOptions"
+                  unit-selector-type="pco2"
                   @update:unit="pco2Unit = $event"
                 />
               </tbody>
@@ -378,6 +471,9 @@
 
           <!-- Carbonate Chemistry -->
           <CardSection title="Carbonate Chemistry" :collapsible="true" v-model:collapsed="carbonateChemCollapsed">
+            <template #header-actions>
+              <ResetButton @click="resetCarbonateChemistryUnits" title="Reset units to defaults" />
+            </template>
             <div class="border border-gray-400 rounded-lg overflow-hidden">
               <table class="w-full text-sm table-fixed">
                 <thead class="bg-gray-200">
@@ -449,17 +545,6 @@
               </table>
             </div>
           </CardSection>
-
-          <!-- Impact Summary -->
-          <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-            <p class="text-sm text-blue-900 font-medium mb-2">Impact Summary</p>
-            <ul class="text-sm text-blue-800 space-y-1">
-              <li>• pH will {{ simulationResults.newpH > currentpH ? 'increase' : 'decrease' }} by {{ Math.abs(simulationResults.newpH - currentpH).toFixed(3) }} units</li>
-              <li>• Aragonite Ω will {{ simulationResults.newState.omegaAragonite > simulationResults.currentState.omegaAragonite ? 'increase' : 'decrease' }} by {{ Math.abs(simulationResults.newState.omegaAragonite - simulationResults.currentState.omegaAragonite).toFixed(2) }}</li>
-              <li>• pCO₂ will {{ simulationResults.newState.pCO2 > simulationResults.currentState.pCO2 ? 'increase' : 'decrease' }} by {{ Math.abs(simulationResults.newState.pCO2 - simulationResults.currentState.pCO2).toFixed(0) }} µatm</li>
-              <li v-if="doseParameter === 'alkalinity'">• Carbonate (CO₃²⁻) will {{ simulationResults.newState.fCO3 > simulationResults.currentState.fCO3 ? 'increase' : 'decrease' }} from {{ (simulationResults.currentState.fCO3 * 100).toFixed(1) }}% to {{ (simulationResults.newState.fCO3 * 100).toFixed(1) }}%</li>
-            </ul>
-          </div>
         </div>
 
         <div v-else class="bg-gray-50 rounded-lg p-8 text-center text-gray-500">
@@ -474,19 +559,27 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { calculateCarbonateSystem } from '../../../utils/carbonate/index.js'
-import { convertAlkalinity } from '../../../utils/carbonate/index.js'
+import { convertAlkalinity, convertpCO2, convertTemperature, convertSalinity, convertCalcium } from '../../../utils/carbonate/index.js'
 import { getChemicalByForm } from '../../../utils/dosingChemicals.js'
 import { getProductsByParameter, getProductById } from '../../../utils/commercialProducts.js'
 import { formatConcentration } from '../../../utils/formatters.js'
 import { getVolumeStep, convertVolume, getUnitAbbrev } from '../../../utils/volumeUtils.js'
 import { convertWeight, getWeightUnitAbbrev, getWeightPrecision } from '../../../utils/weightUtils.js'
+import { useUnitConversion } from '../../../composables/useUnitConversion.js'
 import CardSection from '../../../components/CardSection.vue'
 import StatCard from '../../../components/StatCard.vue'
 import ChemicalSelect from '../../../components/ChemicalSelect.vue'
-import VolumeInput from '../../../components/VolumeInput.vue'
+import UnitInput from '../../../components/UnitInput.vue'
 import VolumeUnitSelect from '../../../components/VolumeUnitSelect.vue'
 import WeightUnitSelect from '../../../components/WeightUnitSelect.vue'
+import PHScaleSelect from '../../../components/PHScaleSelect.vue'
+import AlkalinityUnitSelect from '../../../components/AlkalinityUnitSelect.vue'
+import CalciumUnitSelect from '../../../components/CalciumUnitSelect.vue'
+import PCO2UnitSelect from '../../../components/PCO2UnitSelect.vue'
 import ParameterTableRow from '../../../components/ParameterTableRow.vue'
+import ResetButton from '../../../components/ResetButton.vue'
+import TemperatureUnitSelect from '../../../components/TemperatureUnitSelect.vue'
+import SalinityUnitSelect from '../../../components/SalinityUnitSelect.vue'
 import { InformationCircleIcon, BuildingStorefrontIcon, BeakerIcon, ScaleIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -511,16 +604,97 @@ const settings = loadSettings()
 
 // Tank parameters
 const currentpH = ref(settings.currentpH || 8.1)
-const currentAlk = ref(settings.currentAlk || 8.0)
-const alkUnit = ref(settings.alkUnit || 'dKH')
-const tankVolume = ref(settings.tankVolume || 100)
+const currentPHScale = ref(settings.currentPHScale || 'nbs')
 const tankVolumeUnit = ref(settings.tankVolumeUnit || 'gallons')
-const currentCalcium = ref(settings.currentCalcium || 420)
+
+// Base value for tank volume stored in milliliters
+const tankVolumeBase = ref(
+  settings.tankVolume !== undefined && settings.tankVolumeUnit
+    ? convertVolume(settings.tankVolume, settings.tankVolumeUnit, 'milliliters')
+    : convertVolume(100, 'gallons', 'milliliters')
+)
+
+// Units (saved to localStorage)
+const alkUnit = ref(settings.alkUnit || 'dKH')
 const calciumUnit = ref(settings.calciumUnit || 'ppm')
+const temperatureUnit = ref(settings.temperatureUnit || '°C')
+const salinityUnit = ref(settings.salinityUnit || 'PSU')
+
+// Base values stored in standard units (µmol/kg for alk, ppm for calcium, °C for temp, PSU for salinity)
+// If saved values exist, convert them to base units; otherwise use defaults
+const currentAlkBase = ref(
+  settings.currentAlk !== undefined && settings.alkUnit
+    ? convertAlkalinity(settings.currentAlk, settings.alkUnit, 'µmol/kg')
+    : convertAlkalinity(8.0, 'dKH', 'µmol/kg')
+)
+const currentCalciumBase = ref(
+  settings.currentCalcium !== undefined && settings.calciumUnit
+    ? convertCalcium(settings.currentCalcium, settings.calciumUnit, 'ppm')
+    : 420
+)
+const temperatureBase = ref(
+  settings.localTemperature !== undefined && settings.temperatureUnit
+    ? convertTemperature(settings.localTemperature, settings.temperatureUnit, '°C')
+    : props.temperature
+)
+const salinityBase = ref(
+  settings.localSalinity !== undefined && settings.salinityUnit
+    ? convertSalinity(settings.localSalinity, settings.salinityUnit, 'PSU')
+    : props.salinity
+)
+
+// Track original user input to avoid precision loss on round-trip conversions
+// (matching EnvironmentalInputs.vue pattern for pressure)
+const originalTankVolumeValue = ref(settings.tankVolume !== undefined ? settings.tankVolume : null)
+const originalTankVolumeUnit = ref(settings.tankVolumeUnit || null)
+const originalAlkValue = ref(settings.currentAlk !== undefined ? settings.currentAlk : null)
+const originalAlkUnit = ref(settings.alkUnit || null)
+const originalCalciumValue = ref(settings.currentCalcium !== undefined ? settings.currentCalcium : null)
+const originalCalciumUnit = ref(settings.calciumUnit || null)
+const originalTemperatureValue = ref(settings.localTemperature !== undefined ? settings.localTemperature : null)
+const originalTemperatureUnit = ref(settings.temperatureUnit || null)
+const originalSalinityValue = ref(settings.localSalinity !== undefined ? settings.localSalinity : null)
+const originalSalinityUnit = ref(settings.salinityUnit || null)
+
+// Display values for editing (in currently selected units)
+// Use saved value if in same unit, otherwise convert from base
+const tankVolume = ref(
+  originalTankVolumeUnit.value === tankVolumeUnit.value && originalTankVolumeValue.value !== null
+    ? originalTankVolumeValue.value
+    : convertVolume(tankVolumeBase.value, 'milliliters', tankVolumeUnit.value)
+)
+const currentAlk = ref(
+  originalAlkUnit.value === alkUnit.value && originalAlkValue.value !== null
+    ? originalAlkValue.value
+    : convertAlkalinity(currentAlkBase.value, 'µmol/kg', alkUnit.value)
+)
+const currentCalcium = ref(
+  originalCalciumUnit.value === calciumUnit.value && originalCalciumValue.value !== null
+    ? originalCalciumValue.value
+    : convertCalcium(currentCalciumBase.value, 'ppm', calciumUnit.value)
+)
+const localTemperature = ref(
+  originalTemperatureUnit.value === temperatureUnit.value && originalTemperatureValue.value !== null
+    ? originalTemperatureValue.value
+    : convertTemperature(temperatureBase.value, '°C', temperatureUnit.value)
+)
+const localSalinity = ref(
+  originalSalinityUnit.value === salinityUnit.value && originalSalinityValue.value !== null
+    ? originalSalinityValue.value
+    : convertSalinity(salinityBase.value, 'PSU', salinityUnit.value)
+)
+
+// Focus tracking to prevent updates while typing
+const tankVolumeFocused = ref(false)
+const alkFocused = ref(false)
+const calciumFocused = ref(false)
+const temperatureFocused = ref(false)
+const salinityFocused = ref(false)
 
 // Display units for results tables (separate from input units)
 const displayAlkUnit = ref(settings.displayAlkUnit || alkUnit.value)
 const displayCalciumUnit = ref(settings.displayCalciumUnit || calciumUnit.value)
+const displayPHScale = ref(settings.displayPHScale || 'nbs')
 const pco2Unit = ref(settings.pco2Unit || 'µatm')
 const dicUnit = ref(settings.dicUnit || 'µmol/kg')
 
@@ -552,6 +726,14 @@ const saturationCollapsed = ref(settings.saturationCollapsed !== undefined ? set
 const carbonateChemCollapsed = ref(settings.carbonateChemCollapsed !== undefined ? settings.carbonateChemCollapsed : false)
 
 // Computed
+const temperatureInCelsius = computed(() => {
+  return temperatureBase.value
+})
+
+const salinityInPSU = computed(() => {
+  return salinityBase.value
+})
+
 const commercialProducts = computed(() => {
   return getProductsByParameter(doseParameter.value)
 })
@@ -599,7 +781,7 @@ const displayCurrentCalcium = computed(() => {
   if (calciumUnit.value === 'ppt') {
     valueInPpm = currentCalcium.value * 1000
   }
-  return convertCalcium(valueInPpm, displayCalciumUnit.value)
+  return formatCalciumForDisplay(valueInPpm, displayCalciumUnit.value)
 })
 
 const displayNewCalcium = computed(() => {
@@ -607,10 +789,10 @@ const displayNewCalcium = computed(() => {
     return displayCurrentCalcium.value
   }
   // simulationResults.value.newCalcium is always in ppm
-  return convertCalcium(simulationResults.value.newCalcium, displayCalciumUnit.value)
+  return formatCalciumForDisplay(simulationResults.value.newCalcium, displayCalciumUnit.value)
 })
 
-function convertCalcium(valueInPpm, unit) {
+function formatCalciumForDisplay(valueInPpm, unit) {
   if (unit === 'ppm') {
     return valueInPpm.toFixed(0)
   } else if (unit === 'ppt') {
@@ -619,24 +801,7 @@ function convertCalcium(valueInPpm, unit) {
   return valueInPpm.toFixed(0)
 }
 
-// Unit options for selectors
-const alkUnitOptions = [
-  { value: 'dKH', label: 'dKH' },
-  { value: 'meq/L', label: 'meq/L' },
-  { value: 'µmol/kg', label: 'µmol/kg' }
-]
-
-const calciumUnitOptions = [
-  { value: 'ppm', label: 'ppm' },
-  { value: 'ppt', label: 'ppt' }
-]
-
-const pco2UnitOptions = [
-  { value: 'µatm', label: 'µatm' },
-  { value: 'atm', label: 'atm' },
-  { value: 'Pa', label: 'Pa' }
-]
-
+// DIC unit options (still used in Carbonate Chemistry table)
 const dicUnitOptions = [
   { value: 'µmol/kg', label: 'µmol/kg' },
   { value: 'mmol/kg', label: 'mmol/kg' },
@@ -668,26 +833,37 @@ const displayDoseAmount = computed(() => {
   }
 })
 
+// NOTE: Dosing simulator assumes 1 atm total pressure for pCO2 conversions
+// This is appropriate for typical reef aquariums at sea level
 const displayCurrentPCO2 = computed(() => {
   if (!simulationResults.value) return '—'
-  return convertPCO2(simulationResults.value.currentState.pCO2, pco2Unit.value)
+  // Using 1 atm for surface pressure (0 bar gauge = 1 atm absolute)
+  const converted = convertpCO2(simulationResults.value.currentState.pCO2, 'µatm', pco2Unit.value, 1)
+  // Format with appropriate precision based on unit
+  const precision = pco2Unit.value === 'atm' ? 6 : pco2Unit.value === 'Pa' ? 1 : 0
+  return converted.toFixed(precision)
 })
 
 const displayNewPCO2 = computed(() => {
   if (!simulationResults.value) return '—'
-  return convertPCO2(simulationResults.value.newState.pCO2, pco2Unit.value)
+  // Using 1 atm for surface pressure (0 bar gauge = 1 atm absolute)
+  const converted = convertpCO2(simulationResults.value.newState.pCO2, 'µatm', pco2Unit.value, 1)
+  // Format with appropriate precision based on unit
+  const precision = pco2Unit.value === 'atm' ? 6 : pco2Unit.value === 'Pa' ? 1 : 0
+  return converted.toFixed(precision)
 })
 
-function convertPCO2(valueInMicroatm, unit) {
-  if (unit === 'µatm') {
-    return valueInMicroatm.toFixed(0)
-  } else if (unit === 'atm') {
-    return (valueInMicroatm / 1000000).toFixed(6)
-  } else if (unit === 'Pa') {
-    return (valueInMicroatm * 0.101325).toFixed(1)
-  }
-  return valueInMicroatm.toFixed(0)
-}
+const displayCurrentPH = computed(() => {
+  if (!simulationResults.value) return '—'
+  const pHScaleKey = `pH_${displayPHScale.value}`
+  return simulationResults.value.currentState[pHScaleKey].toFixed(3)
+})
+
+const displayNewPH = computed(() => {
+  if (!simulationResults.value) return '—'
+  const pHScaleKey = `pH_${displayPHScale.value}`
+  return simulationResults.value.newState[pHScaleKey].toFixed(3)
+})
 
 const displayCurrentDIC = computed(() => {
   if (!simulationResults.value) return '—'
@@ -764,19 +940,137 @@ watch(selectedChemical, (newVal) => {
   }
 })
 
+// Sync display values from base values when not focused
+watch(tankVolumeBase, () => {
+  if (!tankVolumeFocused.value) {
+    // If displaying in the original unit the user typed, use the original value
+    if (originalTankVolumeUnit.value === tankVolumeUnit.value && originalTankVolumeValue.value !== null) {
+      tankVolume.value = originalTankVolumeValue.value
+    } else {
+      tankVolume.value = convertVolume(tankVolumeBase.value, 'milliliters', tankVolumeUnit.value)
+    }
+  }
+})
+
+watch(currentAlkBase, () => {
+  if (!alkFocused.value) {
+    // If displaying in the original unit the user typed, use the original value
+    if (originalAlkUnit.value === alkUnit.value && originalAlkValue.value !== null) {
+      currentAlk.value = originalAlkValue.value
+    } else {
+      currentAlk.value = convertAlkalinity(currentAlkBase.value, 'µmol/kg', alkUnit.value)
+    }
+  }
+})
+
+watch(currentCalciumBase, () => {
+  if (!calciumFocused.value) {
+    // If displaying in the original unit the user typed, use the original value
+    if (originalCalciumUnit.value === calciumUnit.value && originalCalciumValue.value !== null) {
+      currentCalcium.value = originalCalciumValue.value
+    } else {
+      currentCalcium.value = convertCalcium(currentCalciumBase.value, 'ppm', calciumUnit.value)
+    }
+  }
+})
+
+watch(temperatureBase, () => {
+  if (!temperatureFocused.value) {
+    // If displaying in the original unit the user typed, use the original value
+    if (originalTemperatureUnit.value === temperatureUnit.value && originalTemperatureValue.value !== null) {
+      localTemperature.value = originalTemperatureValue.value
+    } else {
+      localTemperature.value = convertTemperature(temperatureBase.value, '°C', temperatureUnit.value)
+    }
+  }
+})
+
+watch(salinityBase, () => {
+  if (!salinityFocused.value) {
+    // If displaying in the original unit the user typed, use the original value
+    if (originalSalinityUnit.value === salinityUnit.value && originalSalinityValue.value !== null) {
+      localSalinity.value = originalSalinityValue.value
+    } else {
+      localSalinity.value = convertSalinity(salinityBase.value, 'PSU', salinityUnit.value)
+    }
+  }
+})
+
+// Convert display values when units change (matching EnvironmentalInputs pattern)
+watch(tankVolumeUnit, (newUnit) => {
+  if (!tankVolumeFocused.value) {
+    // If switching back to the original unit the user typed, use the original value
+    if (originalTankVolumeUnit.value === newUnit && originalTankVolumeValue.value !== null) {
+      tankVolume.value = originalTankVolumeValue.value
+    } else {
+      tankVolume.value = convertVolume(tankVolumeBase.value, 'milliliters', newUnit)
+    }
+  }
+})
+
+watch(alkUnit, (newUnit) => {
+  if (!alkFocused.value) {
+    // If switching back to the original unit the user typed, use the original value
+    if (originalAlkUnit.value === newUnit && originalAlkValue.value !== null) {
+      currentAlk.value = originalAlkValue.value
+    } else {
+      currentAlk.value = convertAlkalinity(currentAlkBase.value, 'µmol/kg', newUnit)
+    }
+  }
+})
+
+watch(calciumUnit, (newUnit) => {
+  if (!calciumFocused.value) {
+    // If switching back to the original unit the user typed, use the original value
+    if (originalCalciumUnit.value === newUnit && originalCalciumValue.value !== null) {
+      currentCalcium.value = originalCalciumValue.value
+    } else {
+      currentCalcium.value = convertCalcium(currentCalciumBase.value, 'ppm', newUnit)
+    }
+  }
+})
+
+watch(temperatureUnit, (newUnit) => {
+  if (!temperatureFocused.value) {
+    // If switching back to the original unit the user typed, use the original value
+    if (originalTemperatureUnit.value === newUnit && originalTemperatureValue.value !== null) {
+      localTemperature.value = originalTemperatureValue.value
+    } else {
+      localTemperature.value = convertTemperature(temperatureBase.value, '°C', newUnit)
+    }
+  }
+})
+
+watch(salinityUnit, (newUnit) => {
+  if (!salinityFocused.value) {
+    // If switching back to the original unit the user typed, use the original value
+    if (originalSalinityUnit.value === newUnit && originalSalinityValue.value !== null) {
+      localSalinity.value = originalSalinityValue.value
+    } else {
+      localSalinity.value = convertSalinity(salinityBase.value, 'PSU', newUnit)
+    }
+  }
+})
+
 // Save settings
 const saveSettings = () => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       currentpH: currentpH.value,
+      currentPHScale: currentPHScale.value,
       currentAlk: currentAlk.value,
       alkUnit: alkUnit.value,
       tankVolume: tankVolume.value,
       tankVolumeUnit: tankVolumeUnit.value,
       currentCalcium: currentCalcium.value,
       calciumUnit: calciumUnit.value,
+      localTemperature: localTemperature.value,
+      temperatureUnit: temperatureUnit.value,
+      localSalinity: localSalinity.value,
+      salinityUnit: salinityUnit.value,
       displayAlkUnit: displayAlkUnit.value,
       displayCalciumUnit: displayCalciumUnit.value,
+      displayPHScale: displayPHScale.value,
       pco2Unit: pco2Unit.value,
       dicUnit: dicUnit.value,
       doseParameter: doseParameter.value,
@@ -804,39 +1098,77 @@ const saveSettings = () => {
 }
 
 watch([
-  currentpH, currentAlk, alkUnit, tankVolume, tankVolumeUnit, currentCalcium, calciumUnit,
-  displayAlkUnit, displayCalciumUnit, pco2Unit, dicUnit,
+  currentpH, currentPHScale, currentAlk, alkUnit, tankVolume, tankVolumeUnit, currentCalcium, calciumUnit,
+  localTemperature, temperatureUnit, localSalinity, salinityUnit,
+  displayAlkUnit, displayCalciumUnit, displayPHScale, pco2Unit, dicUnit,
   doseParameter, selectedCompound, selectedFormId, calculationMode, targetChange, targetChangeUnit,
   doseAmount, doseAmountUnit, displayWeightUnit,
   tankParamsCollapsed, dosingSupplementCollapsed, doseConfigCollapsed, doseAmountCollapsed,
   mainParamsCollapsed, saturationCollapsed, carbonateChemCollapsed
 ], saveSettings, { deep: true })
 
-// Realtime simulation watch
+// Realtime simulation watch (watch base values, not display values or units)
 watch([
-  currentpH, currentAlk, alkUnit, tankVolume, tankVolumeUnit, currentCalcium, calciumUnit,
+  currentpH, currentPHScale, tankVolumeBase,
+  currentAlkBase, currentCalciumBase, temperatureBase, salinityBase,
   doseParameter, selectedCommercialProduct, selectedCompound, selectedFormId,
   calculationMode, targetChange, targetChangeUnit, doseAmount, doseAmountUnit,
-  () => props.temperature, () => props.salinity, () => props.phScale
+  () => props.phScale
 ], () => {
   if (canSimulate.value) {
     simulateImpact()
   }
 }, { deep: true })
 
+// Blur handlers for all unit-based inputs (update base values and store original input)
+function handleTankVolumeBlur() {
+  tankVolumeFocused.value = false
+  // Store the user's input as the original to avoid precision loss
+  originalTankVolumeValue.value = parseFloat(tankVolume.value)
+  originalTankVolumeUnit.value = tankVolumeUnit.value
+  tankVolumeBase.value = convertVolume(originalTankVolumeValue.value, tankVolumeUnit.value, 'milliliters')
+}
+
+function handleAlkBlur() {
+  alkFocused.value = false
+  // Store the user's input as the original to avoid precision loss
+  originalAlkValue.value = parseFloat(currentAlk.value)
+  originalAlkUnit.value = alkUnit.value
+  currentAlkBase.value = convertAlkalinity(originalAlkValue.value, alkUnit.value, 'µmol/kg')
+}
+
+function handleCalciumBlur() {
+  calciumFocused.value = false
+  // Store the user's input as the original to avoid precision loss
+  originalCalciumValue.value = parseFloat(currentCalcium.value)
+  originalCalciumUnit.value = calciumUnit.value
+  currentCalciumBase.value = convertCalcium(originalCalciumValue.value, calciumUnit.value, 'ppm')
+}
+
+function handleTemperatureBlur() {
+  temperatureFocused.value = false
+  // Store the user's input as the original to avoid precision loss
+  originalTemperatureValue.value = parseFloat(localTemperature.value)
+  originalTemperatureUnit.value = temperatureUnit.value
+  temperatureBase.value = convertTemperature(originalTemperatureValue.value, temperatureUnit.value, '°C')
+}
+
+function handleSalinityBlur() {
+  salinityFocused.value = false
+  // Store the user's input as the original to avoid precision loss
+  originalSalinityValue.value = parseFloat(localSalinity.value)
+  originalSalinityUnit.value = salinityUnit.value
+  salinityBase.value = convertSalinity(originalSalinityValue.value, salinityUnit.value, 'PSU')
+}
+
 function simulateImpact() {
   try {
     simulationWarnings.value = []
     calculatedDoseAmount.value = null
 
-    // Convert current alkalinity to µmol/kg
-    const currentTA = convertAlkalinity(currentAlk.value, alkUnit.value, 'µmol/kg')
-
-    // Convert current calcium to ppm
-    let currentCalciumPpm = currentCalcium.value || 420
-    if (calciumUnit.value === 'ppt') {
-      currentCalciumPpm = currentCalcium.value * 1000
-    }
+    // Use base values directly (already in µmol/kg and ppm)
+    const currentTA = currentAlkBase.value
+    const currentCalciumPpm = currentCalciumBase.value
 
     // Convert calcium from ppm to mmol/L for the carbonate system calculator
     // Ca in mmol/L = Ca in ppm / molecular weight
@@ -847,10 +1179,11 @@ function simulateImpact() {
     const currentState = calculateCarbonateSystem({
       param1Type: 'pH',
       param1Value: currentpH.value,
+      param1Unit: currentPHScale.value,
       param2Type: 'TA',
       param2Value: currentTA,
-      temperature: props.temperature,
-      salinity: props.salinity,
+      temperature: temperatureInCelsius.value,
+      salinity: salinityInPSU.value,
       pressure: 0,
       pHScale: props.phScale,
       calcium: currentCalciumMmolL
@@ -871,9 +1204,7 @@ function simulateImpact() {
 
         // Calculate grams/mL needed if supplement is selected
         if (selectedProduct.value || selectedChemical.value) {
-          const tankVolumeGallons = tankVolumeUnit.value === 'gallons'
-            ? tankVolume.value
-            : convertVolume(tankVolume.value, tankVolumeUnit.value, 'gallons')
+          const tankVolumeGallons = convertVolume(tankVolumeBase.value, 'milliliters', 'gallons')
 
           const alkChangeInDKH = convertAlkalinity(changeInBase, 'µmol/kg', 'dKH')
 
@@ -905,9 +1236,7 @@ function simulateImpact() {
 
         // Calculate grams/mL needed if supplement is selected
         if (selectedProduct.value || selectedChemical.value) {
-          const tankVolumeGallons = tankVolumeUnit.value === 'gallons'
-            ? tankVolume.value
-            : convertVolume(tankVolume.value, tankVolumeUnit.value, 'gallons')
+          const tankVolumeGallons = convertVolume(tankVolumeBase.value, 'milliliters', 'gallons')
 
           if (selectedProduct.value) {
             // Commercial product: use concentration directly
@@ -932,9 +1261,7 @@ function simulateImpact() {
         throw new Error('Please select a supplement')
       }
 
-      const tankVolumeGallons = tankVolumeUnit.value === 'gallons'
-        ? tankVolume.value
-        : convertVolume(tankVolume.value, tankVolumeUnit.value, 'gallons')
+      const tankVolumeGallons = convertVolume(tankVolumeBase.value, 'milliliters', 'gallons')
 
       if (doseParameter.value === 'alkalinity') {
         let dKHChange
@@ -997,17 +1324,20 @@ function simulateImpact() {
       param1Value: newDIC,
       param2Type: 'TA',
       param2Value: newTA,
-      temperature: props.temperature,
-      salinity: props.salinity,
+      temperature: temperatureInCelsius.value,
+      salinity: salinityInPSU.value,
       pressure: 0,
       pHScale: props.phScale,
       calcium: newCalciumMmolL
     })
 
+    // Get pH values in the user's input scale for display
+    const pHScaleKey = `pH_${currentPHScale.value}`
+
     simulationResults.value = {
       currentState,
       newState,
-      newpH: newState.pH,
+      newpH: newState[pHScaleKey] || newState.pH,
       newCalcium
     }
 
@@ -1015,6 +1345,67 @@ function simulateImpact() {
     console.error('Simulation error:', error)
     simulationWarnings.value.push(`Simulation error: ${error.message}`)
   }
+}
+
+function resetTankParameters() {
+  tankVolumeBase.value = convertVolume(100, 'gallons', 'milliliters')
+  tankVolumeUnit.value = 'gallons'
+  tankVolume.value = 100
+  originalTankVolumeValue.value = 100
+  originalTankVolumeUnit.value = 'gallons'
+
+  currentpH.value = 8.1
+  currentPHScale.value = 'nbs'
+
+  currentAlkBase.value = convertAlkalinity(8.0, 'dKH', 'µmol/kg')
+  alkUnit.value = 'dKH'
+  currentAlk.value = 8.0
+  originalAlkValue.value = 8.0
+  originalAlkUnit.value = 'dKH'
+
+  currentCalciumBase.value = 420
+  calciumUnit.value = 'ppm'
+  currentCalcium.value = 420
+  originalCalciumValue.value = 420
+  originalCalciumUnit.value = 'ppm'
+
+  temperatureBase.value = props.temperature
+  temperatureUnit.value = '°C'
+  localTemperature.value = props.temperature
+  originalTemperatureValue.value = props.temperature
+  originalTemperatureUnit.value = '°C'
+
+  salinityBase.value = props.salinity
+  salinityUnit.value = 'PSU'
+  localSalinity.value = props.salinity
+  originalSalinityValue.value = props.salinity
+  originalSalinityUnit.value = 'PSU'
+}
+
+function resetDosingSupplementValues() {
+  doseParameter.value = 'alkalinity'
+  selectedCommercialProduct.value = ''
+  selectedCompound.value = ''
+  selectedFormId.value = ''
+}
+
+function resetDoseConfiguration() {
+  calculationMode.value = 'target-change'
+  targetChange.value = 0.5
+  targetChangeUnit.value = 'dKH'
+  doseAmount.value = 10
+  doseAmountUnit.value = 'grams'
+}
+
+function resetMainParametersUnits() {
+  displayAlkUnit.value = 'dKH'
+  displayCalciumUnit.value = 'ppm'
+  displayPHScale.value = 'nbs'
+}
+
+function resetCarbonateChemistryUnits() {
+  pco2Unit.value = 'µatm'
+  dicUnit.value = 'µmol/kg'
 }
 
 onMounted(() => {

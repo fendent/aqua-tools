@@ -73,23 +73,39 @@ export function convertConcentration(value, fromUnit, toUnit) {
 /**
  * Convert pCO2 between units
  * @param {number} value - pCO2 value
- * @param {string} fromUnit - Source unit
- * @param {string} toUnit - Target unit
- * @param {number} totalPressure - Total pressure in atm (default: 1)
+ * @param {string} fromUnit - Source unit (µatm, atm, Pa, ppm)
+ * @param {string} toUnit - Target unit (µatm, atm, Pa, ppm)
+ * @param {number} totalPressure - Total pressure in atm (default: 1, used for ppm conversions)
  * @returns {number} Converted value
  */
 export function convertpCO2(value, fromUnit, toUnit, totalPressure = 1) {
   if (fromUnit === toUnit) return value
 
-  // Convert between µatm (partial pressure) and ppm (volume fraction)
+  // Conversion factors:
+  // 1 atm = 101325 Pa
+  // 1 µatm = 10^-6 atm = 0.101325 Pa
   // ppm = (pCO2_atm / total_pressure) × 10^6
-  // µatm = pCO2_atm × 10^6
-  if (fromUnit === 'µatm' && toUnit === 'ppm') {
-    // µatm to ppm: divide by total pressure
-    return value / totalPressure
-  } else if (fromUnit === 'ppm' && toUnit === 'µatm') {
-    // ppm to µatm: multiply by total pressure
-    return value * totalPressure
+
+  // First convert to µatm as intermediate
+  let valueInMicroatm = value
+
+  if (fromUnit === 'atm') {
+    valueInMicroatm = value * 1000000
+  } else if (fromUnit === 'Pa') {
+    valueInMicroatm = value / 0.101325
+  } else if (fromUnit === 'ppm') {
+    valueInMicroatm = value * totalPressure
+  }
+
+  // Then convert from µatm to target unit
+  if (toUnit === 'µatm') {
+    return valueInMicroatm
+  } else if (toUnit === 'atm') {
+    return valueInMicroatm / 1000000
+  } else if (toUnit === 'Pa') {
+    return valueInMicroatm * 0.101325
+  } else if (toUnit === 'ppm') {
+    return valueInMicroatm / totalPressure
   }
 
   return value
@@ -117,18 +133,31 @@ export function convertTemperature(value, fromUnit, toUnit) {
 /**
  * Convert calcium between units
  * @param {number} value - Calcium value
- * @param {string} fromUnit - Source unit
- * @param {string} toUnit - Target unit
+ * @param {string} fromUnit - Source unit (ppm, ppt, mmol/kg)
+ * @param {string} toUnit - Target unit (ppm, ppt, mmol/kg)
  * @returns {number} Converted value
  */
 export function convertCalcium(value, fromUnit, toUnit) {
   if (fromUnit === toUnit) return value
 
-  // 1 mmol/kg = 40.078 mg/L (ppm) for calcium
-  if (fromUnit === 'mmol/kg' && toUnit === 'ppm') {
-    return value * 40.078
-  } else if (fromUnit === 'ppm' && toUnit === 'mmol/kg') {
-    return value / 40.078
+  // Convert to ppm first (base unit)
+  let valueInPpm = value
+  if (fromUnit === 'ppt') {
+    // 1 ppt = 1000 ppm
+    valueInPpm = value * 1000
+  } else if (fromUnit === 'mmol/kg') {
+    // 1 mmol/kg = 40.078 mg/L (ppm) for calcium
+    valueInPpm = value * 40.078
+  }
+
+  // Convert from ppm to target unit
+  if (toUnit === 'ppm') {
+    return valueInPpm
+  } else if (toUnit === 'ppt') {
+    // 1 ppm = 0.001 ppt
+    return valueInPpm / 1000
+  } else if (toUnit === 'mmol/kg') {
+    return valueInPpm / 40.078
   }
 
   return value

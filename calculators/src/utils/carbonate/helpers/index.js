@@ -9,7 +9,12 @@ export {
   convertAlkalinity,
   convertConcentration,
   convertpCO2,
-  convertPressure
+  convertPressure,
+  convertTemperature,
+  convertSalinity,
+  convertCalcium,
+  convertPhosphate,
+  convertSilicate
 } from './units.js'
 
 // Formatting

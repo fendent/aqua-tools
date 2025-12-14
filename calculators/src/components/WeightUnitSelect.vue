@@ -2,7 +2,7 @@
   <select
     :value="modelValue"
     @change="$emit('update:modelValue', $event.target.value)"
-    class="w-full px-3 py-2 border rounded-lg text-sm bg-white hover:bg-gray-50 transition-colors cursor-pointer"
+    class="w-full h-[42px] px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer"
   >
     <option value="milligrams">{{ labelFormat === 'abbrev' ? 'mg' : 'Milligrams' }}</option>
     <option value="grams">{{ labelFormat === 'abbrev' ? 'g' : 'Grams' }}</option>

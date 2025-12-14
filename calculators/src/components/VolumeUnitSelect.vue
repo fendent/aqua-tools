@@ -24,7 +24,7 @@ const props = defineProps({
   },
   selectClass: {
     type: String,
-    default: 'w-full px-3 py-2 border rounded-lg'
+    default: 'w-full h-[42px] px-3 py-2 border rounded-lg bg-white'
   },
   includeAuto: {
     type: Boolean,

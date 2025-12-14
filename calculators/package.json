@@ -7,7 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:co2sys": "vitest run tests/co2sys"
   },
   "keywords": [
     "aquarium",
@@ -30,6 +35,7 @@
     "gh-pages": "^6.1.1",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.1.0"
+    "vite": "^5.1.0",
+    "vitest": "^4.0.15"
   }
 }

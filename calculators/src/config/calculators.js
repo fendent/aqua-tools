@@ -22,5 +22,13 @@ export const CALCULATORS = [
     path: '/calculators/dosing-target',
     icon: '🎯',
     description: 'Calculate supplement dosage to reach target Ca, Alk, Mg, and nutrient levels. Supports 120+ commercial products and full DIY supplement library.'
+  },
+  {
+    id: 'co2sys',
+    name: 'CO2SYS Calculator',
+    shortName: 'CO2SYS',
+    path: '/calculators/co2sys',
+    icon: '🌊',
+    description: 'Marine carbonate system calculator. Calculate complete carbonate chemistry from any 2 parameters (pH, TA, DIC, pCO2, CO3, HCO3, aqCO2). Includes saturation states, time series, and dosing simulator.'
   }
 ]

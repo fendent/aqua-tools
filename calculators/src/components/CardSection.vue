@@ -6,16 +6,11 @@
       @click="collapsible ? toggleCollapsed() : null"
     >
       <div class="flex items-center gap-2">
-        <svg
+        <ChevronRightIcon
           v-if="collapsible"
           class="w-5 h-5 text-gray-600 transition-transform"
           :class="{ 'rotate-90': !isCollapsed }"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
+        />
         <h3 class="text-lg font-semibold text-gray-900">{{ title }}</h3>
       </div>
       <div class="flex items-center gap-2">
@@ -33,18 +28,33 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { ChevronRightIcon } from '@heroicons/vue/24/solid'
 
 const props = defineProps({
   title: { type: String, required: true },
   contentClass: { type: String, default: '' },
   collapsible: { type: Boolean, default: false },
-  defaultCollapsed: { type: Boolean, default: false }
+  defaultCollapsed: { type: Boolean, default: false },
+  collapsed: { type: Boolean, default: undefined }
 })
 
-const isCollapsed = ref(props.defaultCollapsed)
+const emit = defineEmits(['update:collapsed'])
+
+// Use v-model if provided, otherwise use internal state
+const isCollapsed = ref(props.collapsed !== undefined ? props.collapsed : props.defaultCollapsed)
+
+// Watch for external changes to collapsed prop
+watch(() => props.collapsed, (newVal) => {
+  if (newVal !== undefined) {
+    isCollapsed.value = newVal
+  }
+})
 
 const toggleCollapsed = () => {
   isCollapsed.value = !isCollapsed.value
+  if (props.collapsed !== undefined) {
+    emit('update:collapsed', isCollapsed.value)
+  }
 }
 </script>

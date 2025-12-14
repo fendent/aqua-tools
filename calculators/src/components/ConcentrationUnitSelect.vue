@@ -38,14 +38,14 @@ defineEmits(['update:modelValue'])
 const options = computed(() => {
   if (props.labelFormat === 'abbrev') {
     return [
-      { value: 'µmol/kg', label: 'µmol/kg' },
-      { value: 'mmol/kg', label: 'mmol/kg' },
+      { value: 'umol_kg', label: 'µmol/kg' },
+      { value: 'mmol_kg', label: 'mmol/kg' },
       { value: 'dKH', label: 'dKH' }
     ]
   }
   return [
-    { value: 'µmol/kg', label: 'µmol/kg (micromoles per kilogram)' },
-    { value: 'mmol/kg', label: 'mmol/kg (millimoles per kilogram)' },
+    { value: 'umol_kg', label: 'µmol/kg (micromoles per kilogram)' },
+    { value: 'mmol_kg', label: 'mmol/kg (millimoles per kilogram)' },
     { value: 'dKH', label: 'dKH (German degrees)' }
   ]
 })

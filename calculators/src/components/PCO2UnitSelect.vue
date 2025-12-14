@@ -38,14 +38,14 @@ defineEmits(['update:modelValue'])
 const options = computed(() => {
   if (props.labelFormat === 'abbrev') {
     return [
-      { value: 'µatm', label: 'µatm' },
+      { value: 'uatm', label: 'µatm' },
       { value: 'atm', label: 'atm' },
       { value: 'Pa', label: 'Pa' },
       { value: 'ppm', label: 'ppm' }
     ]
   }
   return [
-    { value: 'µatm', label: 'µatm (microatmospheres)' },
+    { value: 'uatm', label: 'µatm (microatmospheres)' },
     { value: 'atm', label: 'atm (atmospheres)' },
     { value: 'Pa', label: 'Pa (pascals)' },
     { value: 'ppm', label: 'ppm (parts per million)' }

@@ -38,13 +38,13 @@ defineEmits(['update:modelValue'])
 const options = computed(() => {
   if (props.labelFormat === 'abbrev') {
     return [
-      { value: '°C', label: '°C' },
-      { value: '°F', label: '°F' }
+      { value: 'degC', label: '°C' },
+      { value: 'degF', label: '°F' }
     ]
   }
   return [
-    { value: '°C', label: 'Celsius (°C)' },
-    { value: '°F', label: 'Fahrenheit (°F)' }
+    { value: 'degC', label: 'Celsius (°C)' },
+    { value: 'degF', label: 'Fahrenheit (°F)' }
   ]
 })
 </script>

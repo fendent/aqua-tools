@@ -40,13 +40,13 @@ const options = computed(() => {
     return [
       { value: 'ppm', label: 'ppm' },
       { value: 'ppt', label: 'ppt' },
-      { value: 'mmol/kg', label: 'mmol/kg' }
+      { value: 'mmol_kg', label: 'mmol/kg' }
     ]
   }
   return [
     { value: 'ppm', label: 'ppm (parts per million)' },
     { value: 'ppt', label: 'ppt (parts per thousand)' },
-    { value: 'mmol/kg', label: 'mmol/kg (millimoles per kilogram)' }
+    { value: 'mmol_kg', label: 'mmol/kg (millimoles per kilogram)' }
   ]
 })
 </script>

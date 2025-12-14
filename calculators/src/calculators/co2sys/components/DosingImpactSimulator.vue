@@ -104,15 +104,8 @@
                 />
               </div>
               <div>
-                <select
-                  v-model="currentPHScale"
-                  class="w-full px-3 py-2 border rounded-lg bg-white"
-                >
-                  <option value="total">Total</option>
-                  <option value="sws">Seawater (SWS)</option>
-                  <option value="free">Free</option>
-                  <option value="nbs">NBS</option>
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+                <PHScaleSelect v-model="currentPHScale" />
               </div>
             </div>
 
@@ -132,14 +125,8 @@
                 />
               </div>
               <div>
-                <select
-                  v-model="alkUnit"
-                  class="w-full px-3 py-2 border rounded-lg bg-white"
-                >
-                  <option value="dKH">dKH</option>
-                  <option value="meq/L">meq/L</option>
-                  <option value="µmol/kg">µmol/kg</option>
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+                <AlkalinityUnitSelect v-model="alkUnit" />
               </div>
             </div>
 
@@ -160,13 +147,8 @@
                 />
               </div>
               <div>
-                <select
-                  v-model="calciumUnit"
-                  class="w-full px-3 py-2 border rounded-lg bg-white"
-                >
-                  <option value="ppm">ppm</option>
-                  <option value="ppt">ppt</option>
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-2">&nbsp;</label>
+                <CalciumUnitSelect v-model="calciumUnit" />
               </div>
             </div>
           </div>
@@ -450,7 +432,7 @@
                   :before-value="displayCurrentPH"
                   :after-value="displayNewPH"
                   :unit="displayPHScale"
-                  :unit-options="phScaleUnitOptions"
+                  unit-selector-type="phScale"
                   @update:unit="displayPHScale = $event"
                 />
                 <ParameterTableRow
@@ -458,7 +440,7 @@
                   :before-value="displayCurrentAlk"
                   :after-value="displayNewAlk"
                   :unit="displayAlkUnit"
-                  :unit-options="alkUnitOptions"
+                  unit-selector-type="alkalinity"
                   @update:unit="displayAlkUnit = $event"
                 />
                 <ParameterTableRow
@@ -466,7 +448,7 @@
                   :before-value="displayCurrentCalcium"
                   :after-value="displayNewCalcium"
                   :unit="displayCalciumUnit"
-                  :unit-options="calciumUnitOptions"
+                  unit-selector-type="calcium"
                   @update:unit="displayCalciumUnit = $event"
                 />
                 <ParameterTableRow
@@ -474,7 +456,7 @@
                   :before-value="displayCurrentPCO2"
                   :after-value="displayNewPCO2"
                   :unit="pco2Unit"
-                  :unit-options="pco2UnitOptions"
+                  unit-selector-type="pco2"
                   @update:unit="pco2Unit = $event"
                 />
               </tbody>
@@ -575,11 +557,17 @@ import { getProductsByParameter, getProductById } from '../../../utils/commercia
 import { formatConcentration } from '../../../utils/formatters.js'
 import { getVolumeStep, convertVolume, getUnitAbbrev } from '../../../utils/volumeUtils.js'
 import { convertWeight, getWeightUnitAbbrev, getWeightPrecision } from '../../../utils/weightUtils.js'
+import { useUnitConversion } from '../../../composables/useUnitConversion.js'
 import CardSection from '../../../components/CardSection.vue'
 import StatCard from '../../../components/StatCard.vue'
 import ChemicalSelect from '../../../components/ChemicalSelect.vue'
+import UnitInput from '../../../components/UnitInput.vue'
 import VolumeUnitSelect from '../../../components/VolumeUnitSelect.vue'
 import WeightUnitSelect from '../../../components/WeightUnitSelect.vue'
+import PHScaleSelect from '../../../components/PHScaleSelect.vue'
+import AlkalinityUnitSelect from '../../../components/AlkalinityUnitSelect.vue'
+import CalciumUnitSelect from '../../../components/CalciumUnitSelect.vue'
+import PCO2UnitSelect from '../../../components/PCO2UnitSelect.vue'
 import ParameterTableRow from '../../../components/ParameterTableRow.vue'
 import { InformationCircleIcon, BuildingStorefrontIcon, BeakerIcon, ScaleIcon } from '@heroicons/vue/24/outline'
 
@@ -802,32 +790,7 @@ function formatCalciumForDisplay(valueInPpm, unit) {
   return valueInPpm.toFixed(0)
 }
 
-// Unit options for selectors
-const alkUnitOptions = [
-  { value: 'dKH', label: 'dKH' },
-  { value: 'meq/L', label: 'meq/L' },
-  { value: 'µmol/kg', label: 'µmol/kg' }
-]
-
-const calciumUnitOptions = [
-  { value: 'ppm', label: 'ppm' },
-  { value: 'ppt', label: 'ppt' }
-]
-
-const phScaleUnitOptions = [
-  { value: 'total', label: 'Total' },
-  { value: 'sws', label: 'Seawater (SWS)' },
-  { value: 'free', label: 'Free' },
-  { value: 'nbs', label: 'NBS' }
-]
-
-const pco2UnitOptions = [
-  { value: 'µatm', label: 'µatm' },
-  { value: 'atm', label: 'atm' },
-  { value: 'Pa', label: 'Pa' },
-  { value: 'ppm', label: 'ppm' }
-]
-
+// DIC unit options (still used in Carbonate Chemistry table)
 const dicUnitOptions = [
   { value: 'µmol/kg', label: 'µmol/kg' },
   { value: 'mmol/kg', label: 'mmol/kg' },

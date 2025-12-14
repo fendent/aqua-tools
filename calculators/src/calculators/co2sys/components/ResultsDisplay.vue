@@ -8,21 +8,6 @@
       @update:collapsed="$emit('update:phValuesCollapsed', $event)"
     >
       <div class="space-y-4">
-        <!-- pH Scale Selector -->
-        <div class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
-          <label class="text-sm font-medium text-gray-700 whitespace-nowrap">pH Scale for Input/Output:</label>
-          <select
-            :value="phScale"
-            @change="$emit('update:phScale', $event.target.value)"
-            class="flex-1 px-4 py-2 text-sm border rounded-lg bg-white"
-          >
-            <option value="total">Total</option>
-            <option value="sws">Seawater (SWS)</option>
-            <option value="free">Free</option>
-            <option value="nbs">NBS</option>
-          </select>
-        </div>
-
         <div class="border border-gray-400 rounded-lg overflow-hidden">
           <table class="w-full text-sm">
             <thead class="bg-gray-200">

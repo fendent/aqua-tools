@@ -1,5 +1,5 @@
 <template>
-  <tr class="hover:bg-gray-50">
+  <tr class="even:bg-gray-50 hover:bg-gray-100">
     <td class="px-4 py-2">{{ label }}</td>
     <td class="px-4 py-2 text-right font-mono">{{ beforeValue }}</td>
     <td class="px-4 py-2 text-right font-mono">

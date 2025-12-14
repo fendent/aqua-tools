@@ -1,13 +1,16 @@
 <template>
   <tr
     ref="rowElement"
-    class="hover:bg-gray-100 cursor-pointer transition-colors relative"
+    :class="[
+      stripe ? 'bg-gray-50' : '',
+      'hover:bg-gray-100 cursor-pointer transition-colors relative'
+    ]"
     @click.stop="handleClick"
     @mouseleave="handleMouseLeave"
   >
-    <td class="px-4 py-2">{{ species }}</td>
-    <td class="px-4 py-2 text-right font-mono">{{ concentration }}</td>
-    <td class="px-4 py-2 text-right font-mono">{{ percent }}</td>
+    <td class="px-4 py-2 border-b border-gray-400">{{ species }}</td>
+    <td class="px-4 py-2 text-right font-mono border-b border-gray-400">{{ concentration }}</td>
+    <td class="px-4 py-2 text-right font-mono border-b border-gray-400">{{ percent }}</td>
 
     <!-- Tooltip -->
     <td class="absolute inset-0 pointer-events-none">
@@ -42,6 +45,10 @@ defineProps({
   role: {
     type: String,
     required: true
+  },
+  stripe: {
+    type: Boolean,
+    default: false
   }
 })
 

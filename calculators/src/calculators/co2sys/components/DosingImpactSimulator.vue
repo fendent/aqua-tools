@@ -330,16 +330,17 @@
 
           <!-- Main Parameters -->
           <CardSection title="Main Parameters" :collapsible="true" v-model:collapsed="mainParamsCollapsed">
-            <table class="w-full text-sm table-fixed">
-              <thead class="bg-gray-100">
-                <tr>
-                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Parameter</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">Before</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">After</th>
-                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Units</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
+            <div class="border border-gray-400 rounded-lg overflow-hidden">
+              <table class="w-full text-sm table-fixed">
+                <thead class="bg-gray-200">
+                  <tr>
+                    <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%] border-b border-gray-400">Parameter</th>
+                    <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%] border-b border-gray-400">Before</th>
+                    <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%] border-b border-gray-400">After</th>
+                    <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%] border-b border-gray-400">Units</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-400">
                 <ParameterTableRow
                   label="pH"
                   :before-value="currentpH.toFixed(3)"
@@ -371,21 +372,23 @@
                   @update:unit="pco2Unit = $event"
                 />
               </tbody>
-            </table>
+              </table>
+            </div>
           </CardSection>
 
           <!-- Carbonate Chemistry -->
           <CardSection title="Carbonate Chemistry" :collapsible="true" v-model:collapsed="carbonateChemCollapsed">
-            <table class="w-full text-sm table-fixed">
-              <thead class="bg-gray-100">
-                <tr>
-                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Species</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">Before</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">After</th>
-                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Units</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
+            <div class="border border-gray-400 rounded-lg overflow-hidden">
+              <table class="w-full text-sm table-fixed">
+                <thead class="bg-gray-200">
+                  <tr>
+                    <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%] border-b border-gray-400">Species</th>
+                    <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%] border-b border-gray-400">Before</th>
+                    <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%] border-b border-gray-400">After</th>
+                    <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%] border-b border-gray-400">Units</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-400">
                 <ParameterTableRow
                   label="DIC"
                   :before-value="displayCurrentDIC"
@@ -413,21 +416,23 @@
                   unit="%"
                 />
               </tbody>
-            </table>
+              </table>
+            </div>
           </CardSection>
 
           <!-- Saturation States -->
           <CardSection title="Saturation States" :collapsible="true" v-model:collapsed="saturationCollapsed">
-            <table class="w-full text-sm table-fixed">
-              <thead class="bg-gray-100">
-                <tr>
-                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Mineral</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">Before</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">After</th>
-                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Units</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
+            <div class="border border-gray-400 rounded-lg overflow-hidden">
+              <table class="w-full text-sm table-fixed">
+                <thead class="bg-gray-200">
+                  <tr>
+                    <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%] border-b border-gray-400">Mineral</th>
+                    <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%] border-b border-gray-400">Before</th>
+                    <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%] border-b border-gray-400">After</th>
+                    <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%] border-b border-gray-400">Units</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-400">
                 <ParameterTableRow
                   label="Ω Aragonite"
                   :before-value="simulationResults.currentState.omegaAragonite.toFixed(2)"
@@ -441,7 +446,8 @@
                   unit="—"
                 />
               </tbody>
-            </table>
+              </table>
+            </div>
           </CardSection>
 
           <!-- Impact Summary -->

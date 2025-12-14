@@ -1,18 +1,19 @@
 <template>
   <CardSection title="Species Distribution" :collapsible="true" :collapsed="collapsed" @update:collapsed="$emit('update:collapsed', $event)">
     <div class="space-y-5">
-      <table class="w-full text-sm table-fixed">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[40%]">Species</th>
-            <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[35%]">Concentration</th>
-            <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[25%]">% of Total</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200">
+      <div class="border border-gray-400 rounded-lg overflow-hidden">
+        <table class="w-full text-sm table-fixed" style="border-collapse: separate; border-spacing: 0;">
+          <thead class="bg-gray-200">
+            <tr>
+              <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[40%] border-b border-gray-400">Species</th>
+              <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[35%] border-b border-gray-400">Concentration</th>
+              <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[25%] border-b border-gray-400">% of Total</th>
+            </tr>
+          </thead>
+          <tbody>
           <!-- Major Carbonate Species -->
           <tr class="bg-blue-50">
-            <td colspan="3" class="px-4 py-2 font-semibold text-gray-700">Carbonate Species (DIC)</td>
+            <td colspan="3" class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-400">Carbonate Species (DIC)</td>
           </tr>
           <SpeciesRow
             species="CO₂ (aq)"
@@ -25,6 +26,7 @@
             :percent="`${formatPercent(results.fHCO3 * 100, 2)}%`"
             :concentration="formatValue(convertSpeciesConcentration(results.HCO3, displaySpeciesUnit), 'HCO3')"
             role="Bicarbonate, dominant form"
+            :stripe="true"
           />
           <SpeciesRow
             species="CO₃²⁻"
@@ -35,7 +37,7 @@
 
           <!-- Minor Alkalinity Contributors -->
           <tr class="bg-green-50" v-if="results.minorSpecies">
-            <td colspan="3" class="px-4 py-2 font-semibold text-gray-700">Minor Alkalinity Contributors</td>
+            <td colspan="3" class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-400">Minor Alkalinity Contributors</td>
           </tr>
           <SpeciesRow
             v-if="results.minorSpecies"
@@ -75,7 +77,7 @@
 
           <!-- Negative Contributors -->
           <tr class="bg-orange-50" v-if="results.minorSpecies">
-            <td colspan="3" class="px-4 py-2 font-semibold text-gray-700">Negative Alkalinity Contributors</td>
+            <td colspan="3" class="px-4 py-2 font-semibold text-gray-700 border-b border-gray-400">Negative Alkalinity Contributors</td>
           </tr>
           <SpeciesRow
             v-if="results.minorSpecies"
@@ -90,6 +92,7 @@
             :percent="`${formatNegativePercent((results.minorSpecies.bisulfate / results.TA) * 100, 3)}%`"
             :concentration="formatValue(convertSpeciesConcentration(results.minorSpecies.bisulfate, displaySpeciesUnit), 'minor')"
             role="Bisulfate"
+            :stripe="true"
           />
           <SpeciesRow
             v-if="results.minorSpecies"
@@ -99,7 +102,8 @@
             role="Hydrogen fluoride"
           />
         </tbody>
-      </table>
+        </table>
+      </div>
 
       <div class="flex items-center justify-end gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
         <label class="text-sm font-medium text-gray-700">Concentration Unit:</label>
@@ -149,3 +153,9 @@ function formatNegativePercent(value, decimals) {
   return '-' + formatted
 }
 </script>
+
+<style scoped>
+:deep(tbody tr:last-child td) {
+  border-bottom: none !important;
+}
+</style>

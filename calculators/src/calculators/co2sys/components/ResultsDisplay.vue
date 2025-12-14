@@ -7,28 +7,28 @@
       :collapsed="phValuesCollapsed"
       @update:collapsed="$emit('update:phValuesCollapsed', $event)"
     >
-      <div>
+      <div class="border border-gray-400 rounded-lg overflow-hidden">
         <table class="w-full text-sm">
-          <thead class="bg-gray-100">
+          <thead class="bg-gray-200">
             <tr>
-              <th class="px-4 py-2 text-left font-semibold text-gray-700">Scale</th>
-              <th class="px-4 py-2 text-right font-semibold text-gray-700">Value</th>
+              <th class="px-4 py-2 text-left font-semibold text-gray-700 border-b border-gray-400">Scale</th>
+              <th class="px-4 py-2 text-right font-semibold text-gray-700 border-b border-gray-400">Value</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr class="hover:bg-gray-50">
+          <tbody class="divide-y divide-gray-400">
+            <tr class="even:bg-gray-50 hover:bg-gray-100">
               <td class="px-4 py-2">Total</td>
               <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_total, 'pH') }}</td>
             </tr>
-            <tr class="hover:bg-gray-50">
+            <tr class="even:bg-gray-50 hover:bg-gray-100">
               <td class="px-4 py-2">Seawater (SWS)</td>
               <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_sws, 'pH') }}</td>
             </tr>
-            <tr class="hover:bg-gray-50">
+            <tr class="even:bg-gray-50 hover:bg-gray-100">
               <td class="px-4 py-2">Free</td>
               <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_free, 'pH') }}</td>
             </tr>
-            <tr class="hover:bg-gray-50">
+            <tr class="even:bg-gray-50 hover:bg-gray-100">
               <td class="px-4 py-2">NBS</td>
               <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_nbs, 'pH') }}</td>
             </tr>
@@ -47,17 +47,17 @@
       :collapsed="mainParametersCollapsed"
       @update:collapsed="$emit('update:mainParametersCollapsed', $event)"
     >
-      <div>
+      <div class="border border-gray-400 rounded-lg overflow-hidden">
         <table class="w-full text-sm table-fixed">
-          <thead class="bg-gray-100">
+          <thead class="bg-gray-200">
             <tr>
-              <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[32%]">Parameter</th>
-              <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[40%]">Value</th>
-              <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[28%]">Unit</th>
+              <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[32%] border-b border-gray-400">Parameter</th>
+              <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[40%] border-b border-gray-400">Value</th>
+              <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[28%] border-b border-gray-400">Unit</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-gray-200">
-            <tr class="hover:bg-gray-50">
+          <tbody class="divide-y divide-gray-400">
+            <tr class="even:bg-gray-50 hover:bg-gray-100">
               <td class="px-4 py-2">Total Alkalinity (TA)</td>
               <td class="px-4 py-2 text-right font-mono">{{ displayTAValue }}</td>
               <td class="px-4 py-2">
@@ -71,7 +71,7 @@
                 </select>
               </td>
             </tr>
-            <tr class="hover:bg-gray-50">
+            <tr class="even:bg-gray-50 hover:bg-gray-100">
               <td class="px-4 py-2">Dissolved Inorganic Carbon (DIC)</td>
               <td class="px-4 py-2 text-right font-mono">{{ displayDICValue }}</td>
               <td class="px-4 py-2">
@@ -85,7 +85,7 @@
                 </select>
               </td>
             </tr>
-            <tr class="hover:bg-gray-50">
+            <tr class="even:bg-gray-50 hover:bg-gray-100">
               <td class="px-4 py-2">pCO₂</td>
               <td class="px-4 py-2 text-right font-mono">{{ displaypCO2Value }}</td>
               <td class="px-4 py-2">
@@ -98,7 +98,7 @@
                 </select>
               </td>
             </tr>
-            <tr class="hover:bg-gray-50">
+            <tr class="even:bg-gray-50 hover:bg-gray-100">
               <td class="px-4 py-2">Revelle Factor</td>
               <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.revelleFactor, 'revelle') }}</td>
               <td class="px-4 py-2 text-center text-gray-500">—</td>

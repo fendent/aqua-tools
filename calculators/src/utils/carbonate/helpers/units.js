@@ -2,6 +2,8 @@
  * Unit Conversion Functions
  */
 
+import { getNormalizedUnit } from '../../unitMappings.js'
+
 /**
  * Unit conversion constants
  */
@@ -18,20 +20,24 @@ const MEQ_TO_DKH = 2.8 // meq/L to dKH
  * @returns {number} Converted value
  */
 export function convertAlkalinity(value, fromUnit, toUnit) {
+  // Normalize units to handle both old and new formats
+  fromUnit = getNormalizedUnit(fromUnit)
+  toUnit = getNormalizedUnit(toUnit)
+
   if (fromUnit === toUnit) return value
 
-  // Convert to µmol/kg first
+  // Convert to umol_kg first
   let umolkg = value
-  if (fromUnit === 'meq/L') {
+  if (fromUnit === 'meq_L') {
     umolkg = value * MEQ_TO_UMOL
   } else if (fromUnit === 'dKH') {
     umolkg = value * DKH_TO_MEQ * MEQ_TO_UMOL
   }
 
   // Convert to target unit
-  if (toUnit === 'µmol/kg') {
+  if (toUnit === 'umol_kg') {
     return umolkg
-  } else if (toUnit === 'meq/L') {
+  } else if (toUnit === 'meq_L') {
     return umolkg * UMOL_TO_MEQ
   } else if (toUnit === 'dKH') {
     return umolkg * UMOL_TO_MEQ * MEQ_TO_DKH
@@ -48,20 +54,24 @@ export function convertAlkalinity(value, fromUnit, toUnit) {
  * @returns {number} Converted value
  */
 export function convertConcentration(value, fromUnit, toUnit) {
+  // Normalize units to handle both old and new formats
+  fromUnit = getNormalizedUnit(fromUnit)
+  toUnit = getNormalizedUnit(toUnit)
+
   if (fromUnit === toUnit) return value
 
-  // Convert to µmol/kg first
+  // Convert to umol_kg first
   let umolkg = value
-  if (fromUnit === 'mmol/kg') {
+  if (fromUnit === 'mmol_kg') {
     umolkg = value * 1000
   } else if (fromUnit === 'dKH') {
     umolkg = value * DKH_TO_MEQ * MEQ_TO_UMOL
   }
 
-  // Convert from µmol/kg to target unit
-  if (toUnit === 'µmol/kg') {
+  // Convert from umol_kg to target unit
+  if (toUnit === 'umol_kg') {
     return umolkg
-  } else if (toUnit === 'mmol/kg') {
+  } else if (toUnit === 'mmol_kg') {
     return umolkg / 1000
   } else if (toUnit === 'dKH') {
     return umolkg * UMOL_TO_MEQ * MEQ_TO_DKH
@@ -73,20 +83,24 @@ export function convertConcentration(value, fromUnit, toUnit) {
 /**
  * Convert pCO2 between units
  * @param {number} value - pCO2 value
- * @param {string} fromUnit - Source unit (µatm, atm, Pa, ppm)
- * @param {string} toUnit - Target unit (µatm, atm, Pa, ppm)
+ * @param {string} fromUnit - Source unit (uatm, atm, Pa, ppm)
+ * @param {string} toUnit - Target unit (uatm, atm, Pa, ppm)
  * @param {number} totalPressure - Total pressure in atm (default: 1, used for ppm conversions)
  * @returns {number} Converted value
  */
 export function convertpCO2(value, fromUnit, toUnit, totalPressure = 1) {
+  // Normalize units to handle both old and new formats
+  fromUnit = getNormalizedUnit(fromUnit)
+  toUnit = getNormalizedUnit(toUnit)
+
   if (fromUnit === toUnit) return value
 
   // Conversion factors:
   // 1 atm = 101325 Pa
-  // 1 µatm = 10^-6 atm = 0.101325 Pa
+  // 1 uatm = 10^-6 atm = 0.101325 Pa
   // ppm = (pCO2_atm / total_pressure) × 10^6
 
-  // First convert to µatm as intermediate
+  // First convert to uatm as intermediate
   let valueInMicroatm = value
 
   if (fromUnit === 'atm') {
@@ -97,8 +111,8 @@ export function convertpCO2(value, fromUnit, toUnit, totalPressure = 1) {
     valueInMicroatm = value * totalPressure
   }
 
-  // Then convert from µatm to target unit
-  if (toUnit === 'µatm') {
+  // Then convert from uatm to target unit
+  if (toUnit === 'uatm') {
     return valueInMicroatm
   } else if (toUnit === 'atm') {
     return valueInMicroatm / 1000000
@@ -119,11 +133,15 @@ export function convertpCO2(value, fromUnit, toUnit, totalPressure = 1) {
  * @returns {number} Converted value
  */
 export function convertTemperature(value, fromUnit, toUnit) {
+  // Normalize units to handle both old and new formats
+  fromUnit = getNormalizedUnit(fromUnit)
+  toUnit = getNormalizedUnit(toUnit)
+
   if (fromUnit === toUnit) return value
 
-  if (fromUnit === '°C' && toUnit === '°F') {
+  if (fromUnit === 'degC' && toUnit === 'degF') {
     return (value * 9 / 5) + 32
-  } else if (fromUnit === '°F' && toUnit === '°C') {
+  } else if (fromUnit === 'degF' && toUnit === 'degC') {
     return (value - 32) * 5 / 9
   }
 
@@ -133,11 +151,15 @@ export function convertTemperature(value, fromUnit, toUnit) {
 /**
  * Convert calcium between units
  * @param {number} value - Calcium value
- * @param {string} fromUnit - Source unit (ppm, ppt, mmol/kg)
- * @param {string} toUnit - Target unit (ppm, ppt, mmol/kg)
+ * @param {string} fromUnit - Source unit (ppm, ppt, mmol_kg)
+ * @param {string} toUnit - Target unit (ppm, ppt, mmol_kg)
  * @returns {number} Converted value
  */
 export function convertCalcium(value, fromUnit, toUnit) {
+  // Normalize units to handle both old and new formats
+  fromUnit = getNormalizedUnit(fromUnit)
+  toUnit = getNormalizedUnit(toUnit)
+
   if (fromUnit === toUnit) return value
 
   // Convert to ppm first (base unit)
@@ -145,8 +167,8 @@ export function convertCalcium(value, fromUnit, toUnit) {
   if (fromUnit === 'ppt') {
     // 1 ppt = 1000 ppm
     valueInPpm = value * 1000
-  } else if (fromUnit === 'mmol/kg') {
-    // 1 mmol/kg = 40.078 mg/L (ppm) for calcium
+  } else if (fromUnit === 'mmol_kg') {
+    // 1 mmol_kg = 40.078 mg/L (ppm) for calcium
     valueInPpm = value * 40.078
   }
 
@@ -156,7 +178,7 @@ export function convertCalcium(value, fromUnit, toUnit) {
   } else if (toUnit === 'ppt') {
     // 1 ppm = 0.001 ppt
     return valueInPpm / 1000
-  } else if (toUnit === 'mmol/kg') {
+  } else if (toUnit === 'mmol_kg') {
     return valueInPpm / 40.078
   }
 
@@ -231,12 +253,16 @@ export function convertSalinity(value, fromUnit, toUnit) {
  * @returns {number} Converted value
  */
 export function convertPhosphate(value, fromUnit, toUnit) {
+  // Normalize units to handle both old and new formats
+  fromUnit = getNormalizedUnit(fromUnit)
+  toUnit = getNormalizedUnit(toUnit)
+
   if (fromUnit === toUnit) return value
 
   // Molecular weight of PO4 = 94.97 g/mol
   const MW_PO4 = 94.97
 
-  // First convert to µmol/kg (base unit)
+  // First convert to umol_kg (base unit)
   let umolkg = value
   if (fromUnit === 'ppm') {
     umolkg = (value * 1000) / MW_PO4
@@ -244,8 +270,8 @@ export function convertPhosphate(value, fromUnit, toUnit) {
     umolkg = value / MW_PO4
   }
 
-  // Then convert from µmol/kg to target unit
-  if (toUnit === 'µmol/kg') {
+  // Then convert from umol_kg to target unit
+  if (toUnit === 'umol_kg') {
     return umolkg
   } else if (toUnit === 'ppm') {
     return (umolkg * MW_PO4) / 1000
@@ -264,12 +290,16 @@ export function convertPhosphate(value, fromUnit, toUnit) {
  * @returns {number} Converted value
  */
 export function convertSilicate(value, fromUnit, toUnit) {
+  // Normalize units to handle both old and new formats
+  fromUnit = getNormalizedUnit(fromUnit)
+  toUnit = getNormalizedUnit(toUnit)
+
   if (fromUnit === toUnit) return value
 
   // Molecular weight of SiO2 = 60.08 g/mol
   const MW_SiO2 = 60.08
 
-  // First convert to µmol/kg (base unit)
+  // First convert to umol_kg (base unit)
   let umolkg = value
   if (fromUnit === 'ppm') {
     umolkg = (value * 1000) / MW_SiO2
@@ -277,8 +307,8 @@ export function convertSilicate(value, fromUnit, toUnit) {
     umolkg = value / MW_SiO2
   }
 
-  // Then convert from µmol/kg to target unit
-  if (toUnit === 'µmol/kg') {
+  // Then convert from umol_kg to target unit
+  if (toUnit === 'umol_kg') {
     return umolkg
   } else if (toUnit === 'ppm') {
     return (umolkg * MW_SiO2) / 1000

@@ -39,14 +39,14 @@ const options = computed(() => {
   if (props.labelFormat === 'abbrev') {
     return [
       { value: 'dKH', label: 'dKH' },
-      { value: 'meq/L', label: 'meq/L' },
-      { value: 'µmol/kg', label: 'µmol/kg' }
+      { value: 'meq_L', label: 'meq/L' },
+      { value: 'umol_kg', label: 'µmol/kg' }
     ]
   }
   return [
     { value: 'dKH', label: 'dKH (German degrees)' },
-    { value: 'meq/L', label: 'meq/L (milliequivalents per liter)' },
-    { value: 'µmol/kg', label: 'µmol/kg (micromoles per kilogram)' }
+    { value: 'meq_L', label: 'meq/L (milliequivalents per liter)' },
+    { value: 'umol_kg', label: 'µmol/kg (micromoles per kilogram)' }
   ]
 })
 </script>

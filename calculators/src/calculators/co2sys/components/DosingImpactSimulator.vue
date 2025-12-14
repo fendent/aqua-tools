@@ -12,6 +12,9 @@
       <!-- Left Column: Inputs -->
       <div class="space-y-6">
         <CardSection title="Current Tank Parameters" :collapsible="true" v-model:collapsed="tankParamsCollapsed">
+          <template #header-actions>
+            <ResetButton @click="resetTankParameters" />
+          </template>
           <div class="space-y-4">
             <div class="grid md:grid-cols-3 gap-4 items-end">
               <div class="md:col-span-2">
@@ -53,13 +56,10 @@
                 />
               </div>
               <div>
-                <select
+                <TemperatureUnitSelect
                   v-model="temperatureUnit"
-                  class="w-full px-3 py-2 border rounded-lg bg-white"
-                >
-                  <option value="°C">°C</option>
-                  <option value="°F">°F</option>
-                </select>
+                  select-class="w-full px-3 py-2 border rounded-lg bg-white"
+                />
               </div>
             </div>
 
@@ -80,14 +80,10 @@
                 />
               </div>
               <div>
-                <select
+                <SalinityUnitSelect
                   v-model="salinityUnit"
-                  class="w-full px-3 py-2 border rounded-lg bg-white"
-                >
-                  <option value="PSU">PSU</option>
-                  <option value="ppt">ppt</option>
-                  <option value="SG">SG</option>
-                </select>
+                  select-class="w-full px-3 py-2 border rounded-lg bg-white"
+                />
               </div>
             </div>
 
@@ -155,6 +151,9 @@
         </CardSection>
 
         <CardSection title="Dosing Supplement" :collapsible="true" v-model:collapsed="dosingSupplementCollapsed">
+          <template #header-actions>
+            <ResetButton @click="resetDosingSupplementValues" />
+          </template>
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
@@ -282,6 +281,9 @@
         </CardSection>
 
         <CardSection title="Dose Configuration" :collapsible="true" v-model:collapsed="doseConfigCollapsed">
+          <template #header-actions>
+            <ResetButton @click="resetDoseConfiguration" />
+          </template>
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
@@ -416,6 +418,9 @@
 
           <!-- Main Parameters -->
           <CardSection title="Main Parameters" :collapsible="true" v-model:collapsed="mainParamsCollapsed">
+            <template #header-actions>
+              <ResetButton @click="resetMainParametersUnits" title="Reset units to defaults" />
+            </template>
             <div class="border border-gray-400 rounded-lg overflow-hidden">
               <table class="w-full text-sm table-fixed">
                 <thead class="bg-gray-200">
@@ -466,6 +471,9 @@
 
           <!-- Carbonate Chemistry -->
           <CardSection title="Carbonate Chemistry" :collapsible="true" v-model:collapsed="carbonateChemCollapsed">
+            <template #header-actions>
+              <ResetButton @click="resetCarbonateChemistryUnits" title="Reset units to defaults" />
+            </template>
             <div class="border border-gray-400 rounded-lg overflow-hidden">
               <table class="w-full text-sm table-fixed">
                 <thead class="bg-gray-200">
@@ -569,6 +577,9 @@ import AlkalinityUnitSelect from '../../../components/AlkalinityUnitSelect.vue'
 import CalciumUnitSelect from '../../../components/CalciumUnitSelect.vue'
 import PCO2UnitSelect from '../../../components/PCO2UnitSelect.vue'
 import ParameterTableRow from '../../../components/ParameterTableRow.vue'
+import ResetButton from '../../../components/ResetButton.vue'
+import TemperatureUnitSelect from '../../../components/TemperatureUnitSelect.vue'
+import SalinityUnitSelect from '../../../components/SalinityUnitSelect.vue'
 import { InformationCircleIcon, BuildingStorefrontIcon, BeakerIcon, ScaleIcon } from '@heroicons/vue/24/outline'
 
 const props = defineProps({
@@ -1334,6 +1345,67 @@ function simulateImpact() {
     console.error('Simulation error:', error)
     simulationWarnings.value.push(`Simulation error: ${error.message}`)
   }
+}
+
+function resetTankParameters() {
+  tankVolumeBase.value = convertVolume(100, 'gallons', 'milliliters')
+  tankVolumeUnit.value = 'gallons'
+  tankVolume.value = 100
+  originalTankVolumeValue.value = 100
+  originalTankVolumeUnit.value = 'gallons'
+
+  currentpH.value = 8.1
+  currentPHScale.value = 'nbs'
+
+  currentAlkBase.value = convertAlkalinity(8.0, 'dKH', 'µmol/kg')
+  alkUnit.value = 'dKH'
+  currentAlk.value = 8.0
+  originalAlkValue.value = 8.0
+  originalAlkUnit.value = 'dKH'
+
+  currentCalciumBase.value = 420
+  calciumUnit.value = 'ppm'
+  currentCalcium.value = 420
+  originalCalciumValue.value = 420
+  originalCalciumUnit.value = 'ppm'
+
+  temperatureBase.value = props.temperature
+  temperatureUnit.value = '°C'
+  localTemperature.value = props.temperature
+  originalTemperatureValue.value = props.temperature
+  originalTemperatureUnit.value = '°C'
+
+  salinityBase.value = props.salinity
+  salinityUnit.value = 'PSU'
+  localSalinity.value = props.salinity
+  originalSalinityValue.value = props.salinity
+  originalSalinityUnit.value = 'PSU'
+}
+
+function resetDosingSupplementValues() {
+  doseParameter.value = 'alkalinity'
+  selectedCommercialProduct.value = ''
+  selectedCompound.value = ''
+  selectedFormId.value = ''
+}
+
+function resetDoseConfiguration() {
+  calculationMode.value = 'target-change'
+  targetChange.value = 0.5
+  targetChangeUnit.value = 'dKH'
+  doseAmount.value = 10
+  doseAmountUnit.value = 'grams'
+}
+
+function resetMainParametersUnits() {
+  displayAlkUnit.value = 'dKH'
+  displayCalciumUnit.value = 'ppm'
+  displayPHScale.value = 'nbs'
+}
+
+function resetCarbonateChemistryUnits() {
+  pco2Unit.value = 'µatm'
+  dicUnit.value = 'µmol/kg'
 }
 
 onMounted(() => {

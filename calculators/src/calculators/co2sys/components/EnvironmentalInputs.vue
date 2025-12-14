@@ -109,6 +109,7 @@
 <script setup>
 import { ref, watch } from 'vue'
 import { convertTemperature, convertCalcium, convertPressure, convertSalinity } from '../../../utils/carbonate/helpers/units.js'
+import { useLocalStorageRef } from '../../../composables/useLocalStorageRef.js'
 import TemperatureUnitSelect from '../../../components/TemperatureUnitSelect.vue'
 import SalinityUnitSelect from '../../../components/SalinityUnitSelect.vue'
 import PressureUnitSelect from '../../../components/PressureUnitSelect.vue'
@@ -124,16 +125,10 @@ const props = defineProps({
 const emit = defineEmits(['update:temperature', 'update:salinity', 'update:pressure', 'update:calcium'])
 
 // Unit states with localStorage persistence
-const tempUnit = ref(localStorage.getItem('co2sys-tempUnit') || '°C')
-const salinityUnit = ref(localStorage.getItem('co2sys-salinityUnit') || 'PSU')
-const pressureUnit = ref(localStorage.getItem('co2sys-pressureUnit') || 'bar')
-const calciumUnit = ref(localStorage.getItem('co2sys-calciumUnit') || 'mmol/kg')
-
-// Save unit preferences to localStorage
-watch(tempUnit, (newValue) => localStorage.setItem('co2sys-tempUnit', newValue))
-watch(salinityUnit, (newValue) => localStorage.setItem('co2sys-salinityUnit', newValue))
-watch(pressureUnit, (newValue) => localStorage.setItem('co2sys-pressureUnit', newValue))
-watch(calciumUnit, (newValue) => localStorage.setItem('co2sys-calciumUnit', newValue))
+const tempUnit = useLocalStorageRef('co2sys-tempUnit', '°C')
+const salinityUnit = useLocalStorageRef('co2sys-salinityUnit', 'PSU')
+const pressureUnit = useLocalStorageRef('co2sys-pressureUnit', 'bar')
+const calciumUnit = useLocalStorageRef('co2sys-calciumUnit', 'mmol/kg')
 
 // Local values for editing (prevents re-calculation while typing)
 const localTemperature = ref(convertTemperature(props.temperature, '°C', tempUnit.value))

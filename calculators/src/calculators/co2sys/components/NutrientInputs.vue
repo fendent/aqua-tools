@@ -63,8 +63,9 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { computed } from 'vue'
 import { convertPhosphate, convertSilicate } from '../../../utils/carbonate/helpers/units.js'
+import { useLocalStorageRef } from '../../../composables/useLocalStorageRef.js'
 
 const props = defineProps({
   phosphate: { type: Number, required: true },
@@ -74,12 +75,8 @@ const props = defineProps({
 const emit = defineEmits(['update:phosphate', 'update:silicate'])
 
 // Unit states with localStorage persistence
-const phosphateUnit = ref(localStorage.getItem('co2sys-phosphateUnit') || 'µmol/kg')
-const silicateUnit = ref(localStorage.getItem('co2sys-silicateUnit') || 'µmol/kg')
-
-// Save unit preferences to localStorage
-watch(phosphateUnit, (newValue) => localStorage.setItem('co2sys-phosphateUnit', newValue))
-watch(silicateUnit, (newValue) => localStorage.setItem('co2sys-silicateUnit', newValue))
+const phosphateUnit = useLocalStorageRef('co2sys-phosphateUnit', 'µmol/kg')
+const silicateUnit = useLocalStorageRef('co2sys-silicateUnit', 'µmol/kg')
 
 // Display values (converted from base units)
 const displayPhosphate = computed(() => {

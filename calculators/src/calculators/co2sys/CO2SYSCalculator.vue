@@ -48,14 +48,7 @@
           <!-- Parameter Selection -->
           <CardSection title="Input Parameters" :collapsible="true" v-model:collapsed="inputParamsCollapsed">
             <template #header-actions>
-              <button
-                @click.stop="resetParameters"
-                class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors flex items-center gap-1"
-                title="Reset to defaults"
-              >
-                <ArrowPathIcon class="w-3.5 h-3.5" />
-                Reset
-              </button>
+              <ResetButton @click="resetParameters" />
             </template>
             <div class="space-y-4">
               <ParameterInputCard
@@ -79,14 +72,7 @@
           <!-- Environmental Conditions -->
           <CardSection title="Environmental Conditions" :collapsible="true" v-model:collapsed="environmentalCollapsed">
             <template #header-actions>
-              <button
-                @click.stop="resetEnvironmental"
-                class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors flex items-center gap-1"
-                title="Reset to defaults"
-              >
-                <ArrowPathIcon class="w-3.5 h-3.5" />
-                Reset
-              </button>
+              <ResetButton @click="resetEnvironmental" />
             </template>
             <EnvironmentalInputs
               v-model:temperature="temperature"
@@ -99,14 +85,7 @@
           <!-- Nutrients (Optional) -->
           <CardSection title="Nutrients (Optional)" :collapsible="true" v-model:collapsed="nutrientsCollapsed">
             <template #header-actions>
-              <button
-                @click.stop="resetNutrients"
-                class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors flex items-center gap-1"
-                title="Reset to defaults"
-              >
-                <ArrowPathIcon class="w-3.5 h-3.5" />
-                Reset
-              </button>
+              <ResetButton @click="resetNutrients" />
             </template>
             <NutrientInputs
               v-model:phosphate="totalPhosphate"
@@ -117,28 +96,17 @@
           <!-- pH Scale Selection -->
           <CardSection title="pH Scale" :collapsible="true" v-model:collapsed="pHScaleCollapsed">
             <template #header-actions>
-              <button
-                @click.stop="resetpHScale"
-                class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors flex items-center gap-1"
-                title="Reset to default"
-              >
-                <ArrowPathIcon class="w-3.5 h-3.5" />
-                Reset
-              </button>
+              <ResetButton @click="resetpHScale" title="Reset to default" />
             </template>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
                 pH Scale for Input/Output
               </label>
-              <select
+              <PHScaleSelect
                 v-model="pHScale"
-                class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
-              >
-                <option value="total">Total</option>
-                <option value="sws">Seawater (SWS)</option>
-                <option value="free">Free</option>
-                <option value="nbs">NBS</option>
-              </select>
+                select-class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
+                label-format="full"
+              />
               <p class="text-xs text-gray-500 mt-1">
                 NBS scale is commonly used for probe calibration
               </p>
@@ -148,14 +116,7 @@
           <!-- Equilibrium Constants Formulation Selection -->
           <CardSection title="Equilibrium Constants" :collapsible="true" v-model:collapsed="constantsCollapsed">
             <template #header-actions>
-              <button
-                @click.stop="resetConstants"
-                class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors flex items-center gap-1"
-                title="Reset to defaults"
-              >
-                <ArrowPathIcon class="w-3.5 h-3.5" />
-                Reset
-              </button>
+              <ResetButton @click="resetConstants" />
             </template>
 
             <div class="space-y-4">
@@ -260,7 +221,9 @@ import { calculateCarbonateSystem } from '../../utils/carbonate/index.js'
 import { isValidParameterPair, PARAMETER_TYPES } from '../../utils/carbonate/index.js'
 import { K12_FORMULATIONS, KSO4_FORMULATIONS, KF_FORMULATIONS, BORON_FORMULATIONS } from '../../utils/carbonate/index.js'
 import { checkFormulationRange } from '../../utils/carbonate/helpers/formulationRanges.js'
-import { ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/vue/24/solid'
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid'
+import { useCollapsibleSections } from '../../composables/useCollapsibleSections.js'
+import { createFormulationStatus } from './helpers/formulationHelpers.js'
 import CardSection from '../../components/CardSection.vue'
 import ParameterInputCard from './components/ParameterInputCard.vue'
 import EnvironmentalInputs from './components/EnvironmentalInputs.vue'
@@ -270,6 +233,8 @@ import ParameterInfoPanel from './components/ParameterInfoPanel.vue'
 import DosingImpactSimulator from './components/DosingImpactSimulator.vue'
 import ExportDialog from './components/ExportDialog.vue'
 import FormulationSelector from './components/FormulationSelector.vue'
+import ResetButton from '../../components/ResetButton.vue'
+import PHScaleSelect from '../../components/PHScaleSelect.vue'
 
 // Mode selection
 const modes = [
@@ -315,17 +280,32 @@ const errorMessage = ref('')
 const showExportDialog = ref(false)
 
 // Collapsed states for sections
-const inputParamsCollapsed = ref(false)
-const environmentalCollapsed = ref(false)
-const nutrientsCollapsed = ref(false)
-const pHScaleCollapsed = ref(false)
-const constantsCollapsed = ref(false)
-const pHValuesCollapsed = ref(false)
-const mainParametersCollapsed = ref(false)
-const speciesDistributionCollapsed = ref(false)
-const mineralSaturationCollapsed = ref(false)
-const calculationMethodsCollapsed = ref(false)
-const aboutToolCollapsed = ref(false)
+const collapsed = useCollapsibleSections('co2sys_collapsed', {
+  inputParams: false,
+  environmental: false,
+  nutrients: false,
+  pHScale: false,
+  constants: false,
+  pHValues: false,
+  mainParameters: false,
+  speciesDistribution: false,
+  mineralSaturation: false,
+  calculationMethods: false,
+  aboutTool: false
+})
+
+// Create aliases for easier access (maintain backward compatibility)
+const inputParamsCollapsed = collapsed.inputParams
+const environmentalCollapsed = collapsed.environmental
+const nutrientsCollapsed = collapsed.nutrients
+const pHScaleCollapsed = collapsed.pHScale
+const constantsCollapsed = collapsed.constants
+const pHValuesCollapsed = collapsed.pHValues
+const mainParametersCollapsed = collapsed.mainParameters
+const speciesDistributionCollapsed = collapsed.speciesDistribution
+const mineralSaturationCollapsed = collapsed.mineralSaturation
+const calculationMethodsCollapsed = collapsed.calculationMethods
+const aboutToolCollapsed = collapsed.aboutTool
 
 // Computed
 const canCalculate = computed(() => {
@@ -339,41 +319,10 @@ const canCalculate = computed(() => {
 })
 
 // Formulation range checks
-const k12FormulationStatus = computed(() => {
-  return Object.fromEntries(
-    Object.entries(K12_FORMULATIONS).map(([code, formulation]) => [
-      code,
-      checkFormulationRange(formulation, temperature.value, salinity.value)
-    ])
-  )
-})
-
-const kso4FormulationStatus = computed(() => {
-  return Object.fromEntries(
-    Object.entries(KSO4_FORMULATIONS).map(([code, formulation]) => [
-      code,
-      checkFormulationRange(formulation, temperature.value, salinity.value)
-    ])
-  )
-})
-
-const kfFormulationStatus = computed(() => {
-  return Object.fromEntries(
-    Object.entries(KF_FORMULATIONS).map(([code, formulation]) => [
-      code,
-      checkFormulationRange(formulation, temperature.value, salinity.value)
-    ])
-  )
-})
-
-const boronFormulationStatus = computed(() => {
-  return Object.fromEntries(
-    Object.entries(BORON_FORMULATIONS).map(([code, formulation]) => [
-      code,
-      checkFormulationRange(formulation, temperature.value, salinity.value)
-    ])
-  )
-})
+const k12FormulationStatus = createFormulationStatus(K12_FORMULATIONS, checkFormulationRange, temperature, salinity)
+const kso4FormulationStatus = createFormulationStatus(KSO4_FORMULATIONS, checkFormulationRange, temperature, salinity)
+const kfFormulationStatus = createFormulationStatus(KF_FORMULATIONS, checkFormulationRange, temperature, salinity)
+const boronFormulationStatus = createFormulationStatus(BORON_FORMULATIONS, checkFormulationRange, temperature, salinity)
 
 // Methods
 function calculate() {
@@ -475,18 +424,6 @@ function loadSettings() {
       kso4Formulation.value = settings.kso4Formulation || 'D90a'
       kfFormulation.value = settings.kfFormulation || 'DR79'
       boronFormulation.value = settings.boronFormulation || 'U74'
-      // Load collapsed states
-      inputParamsCollapsed.value = settings.inputParamsCollapsed !== undefined ? settings.inputParamsCollapsed : false
-      environmentalCollapsed.value = settings.environmentalCollapsed !== undefined ? settings.environmentalCollapsed : false
-      nutrientsCollapsed.value = settings.nutrientsCollapsed !== undefined ? settings.nutrientsCollapsed : false
-      pHScaleCollapsed.value = settings.pHScaleCollapsed !== undefined ? settings.pHScaleCollapsed : false
-      constantsCollapsed.value = settings.constantsCollapsed !== undefined ? settings.constantsCollapsed : false
-      pHValuesCollapsed.value = settings.pHValuesCollapsed !== undefined ? settings.pHValuesCollapsed : false
-      mainParametersCollapsed.value = settings.mainParametersCollapsed !== undefined ? settings.mainParametersCollapsed : false
-      speciesDistributionCollapsed.value = settings.speciesDistributionCollapsed !== undefined ? settings.speciesDistributionCollapsed : false
-      mineralSaturationCollapsed.value = settings.mineralSaturationCollapsed !== undefined ? settings.mineralSaturationCollapsed : false
-      calculationMethodsCollapsed.value = settings.calculationMethodsCollapsed !== undefined ? settings.calculationMethodsCollapsed : false
-      aboutToolCollapsed.value = settings.aboutToolCollapsed !== undefined ? settings.aboutToolCollapsed : false
       selectedMode.value = settings.selectedMode || 'normal'
       // Load parameter unit preferences
       parameterUnitPreferences.value = settings.parameterUnitPreferences || {}
@@ -516,18 +453,6 @@ function saveSettings() {
     kso4Formulation: kso4Formulation.value,
     kfFormulation: kfFormulation.value,
     boronFormulation: boronFormulation.value,
-    // Save collapsed states
-    inputParamsCollapsed: inputParamsCollapsed.value,
-    environmentalCollapsed: environmentalCollapsed.value,
-    nutrientsCollapsed: nutrientsCollapsed.value,
-    pHScaleCollapsed: pHScaleCollapsed.value,
-    constantsCollapsed: constantsCollapsed.value,
-    pHValuesCollapsed: pHValuesCollapsed.value,
-    mainParametersCollapsed: mainParametersCollapsed.value,
-    speciesDistributionCollapsed: speciesDistributionCollapsed.value,
-    mineralSaturationCollapsed: mineralSaturationCollapsed.value,
-    calculationMethodsCollapsed: calculationMethodsCollapsed.value,
-    aboutToolCollapsed: aboutToolCollapsed.value,
     selectedMode: selectedMode.value,
     // Save parameter unit preferences
     parameterUnitPreferences: parameterUnitPreferences.value

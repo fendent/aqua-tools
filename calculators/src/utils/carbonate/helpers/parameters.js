@@ -13,6 +13,7 @@ export const PARAMETER_TYPES = {
     name: 'pH',
     description: 'Measure of acidity/alkalinity',
     units: ['total', 'sws', 'free', 'nbs'],
+    unitLabels: { total: 'Total', sws: 'Seawater (SWS)', free: 'Free', nbs: 'NBS' },
     defaultUnit: 'nbs',
     typical: { min: 7.8, max: 8.4, reef: 8.1 },
     category: 'measured'

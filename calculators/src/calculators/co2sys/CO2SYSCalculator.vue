@@ -134,10 +134,10 @@
                 v-model="pHScale"
                 class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
               >
-                <option value="total">Total Scale</option>
-                <option value="sws">Seawater Scale (SWS)</option>
-                <option value="free">Free Scale</option>
-                <option value="nbs">NBS Scale (default)</option>
+                <option value="total">Total</option>
+                <option value="sws">Seawater (SWS)</option>
+                <option value="free">Free</option>
+                <option value="nbs">NBS</option>
               </select>
               <p class="text-xs text-gray-500 mt-1">
                 NBS scale is commonly used for probe calibration
@@ -213,7 +213,7 @@
           <ResultsDisplay
             v-if="results"
             :results="results"
-            :ph-scale="pHScale"
+            v-model:ph-scale="pHScale"
             :input-params="{ param1Type, param1Value, param1Unit, param2Type, param2Value, param2Unit }"
             :pressure="pressure"
             v-model:ph-values-collapsed="pHValuesCollapsed"

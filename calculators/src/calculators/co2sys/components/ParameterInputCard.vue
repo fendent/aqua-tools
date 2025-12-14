@@ -54,7 +54,7 @@
               :key="u"
               :value="u"
             >
-              {{ u }}
+              {{ parameterMetadata.unitLabels?.[u] || u }}
             </option>
           </select>
         </div>

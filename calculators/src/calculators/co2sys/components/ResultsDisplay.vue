@@ -7,36 +7,54 @@
       :collapsed="phValuesCollapsed"
       @update:collapsed="$emit('update:phValuesCollapsed', $event)"
     >
-      <div class="border border-gray-400 rounded-lg overflow-hidden">
-        <table class="w-full text-sm">
-          <thead class="bg-gray-200">
-            <tr>
-              <th class="px-4 py-2 text-left font-semibold text-gray-700 border-b border-gray-400">Scale</th>
-              <th class="px-4 py-2 text-right font-semibold text-gray-700 border-b border-gray-400">Value</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-400">
-            <tr class="even:bg-gray-50 hover:bg-gray-100">
-              <td class="px-4 py-2">Total</td>
-              <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_total, 'pH') }}</td>
-            </tr>
-            <tr class="even:bg-gray-50 hover:bg-gray-100">
-              <td class="px-4 py-2">Seawater (SWS)</td>
-              <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_sws, 'pH') }}</td>
-            </tr>
-            <tr class="even:bg-gray-50 hover:bg-gray-100">
-              <td class="px-4 py-2">Free</td>
-              <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_free, 'pH') }}</td>
-            </tr>
-            <tr class="even:bg-gray-50 hover:bg-gray-100">
-              <td class="px-4 py-2">NBS</td>
-              <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_nbs, 'pH') }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div class="mt-4 text-xs text-gray-600 bg-gray-50 p-3 rounded">
-        Different pH scales account for different ion interactions. Total scale (most common) includes HSO4- in proton concentration.
+      <div class="space-y-4">
+        <!-- pH Scale Selector -->
+        <div class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50">
+          <label class="text-sm font-medium text-gray-700 whitespace-nowrap">pH Scale for Input/Output:</label>
+          <select
+            :value="phScale"
+            @change="$emit('update:phScale', $event.target.value)"
+            class="flex-1 px-4 py-2 text-sm border rounded-lg bg-white"
+          >
+            <option value="total">Total</option>
+            <option value="sws">Seawater (SWS)</option>
+            <option value="free">Free</option>
+            <option value="nbs">NBS</option>
+          </select>
+        </div>
+
+        <div class="border border-gray-400 rounded-lg overflow-hidden">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-200">
+              <tr>
+                <th class="px-4 py-2 text-left font-semibold text-gray-700 border-b border-gray-400">Scale</th>
+                <th class="px-4 py-2 text-right font-semibold text-gray-700 border-b border-gray-400">Value</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-400">
+              <tr class="even:bg-gray-50 hover:bg-gray-100">
+                <td class="px-4 py-2">Total</td>
+                <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_total, 'pH') }}</td>
+              </tr>
+              <tr class="even:bg-gray-50 hover:bg-gray-100">
+                <td class="px-4 py-2">Seawater (SWS)</td>
+                <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_sws, 'pH') }}</td>
+              </tr>
+              <tr class="even:bg-gray-50 hover:bg-gray-100">
+                <td class="px-4 py-2">Free</td>
+                <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_free, 'pH') }}</td>
+              </tr>
+              <tr class="even:bg-gray-50 hover:bg-gray-100">
+                <td class="px-4 py-2">NBS</td>
+                <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_nbs, 'pH') }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="text-xs text-gray-600 bg-gray-50 p-3 rounded">
+          Different pH scales account for different ion interactions. Total scale (most common) includes HSO4- in proton concentration. NBS scale is commonly used for probe calibration.
+        </div>
       </div>
     </CardSection>
 
@@ -94,6 +112,8 @@
                   class="w-full px-2 py-1 text-xs border rounded bg-white"
                 >
                   <option value="µatm">µatm</option>
+                  <option value="atm">atm</option>
+                  <option value="Pa">Pa</option>
                   <option value="ppm">ppm</option>
                 </select>
               </td>
@@ -159,7 +179,7 @@ const props = defineProps({
   calculationMethodsCollapsed: { type: Boolean, default: true }
 })
 
-defineEmits(['export', 'update:phValuesCollapsed', 'update:mainParametersCollapsed', 'update:speciesDistributionCollapsed', 'update:mineralSaturationCollapsed', 'update:calculationMethodsCollapsed'])
+defineEmits(['export', 'update:phScale', 'update:phValuesCollapsed', 'update:mainParametersCollapsed', 'update:speciesDistributionCollapsed', 'update:mineralSaturationCollapsed', 'update:calculationMethodsCollapsed'])
 
 const displayTAUnit = ref('dKH')
 const displayDICUnit = ref('mmol/kg')
@@ -202,13 +222,18 @@ const displayDICValue = computed(() => {
 })
 
 const displayPCO2Value = computed(() => {
+  let value
   // If displaying in the same unit as the input, show the original input value
   if (props.inputParams && props.inputParams.param1Type === 'pCO2' && props.inputParams.param1Unit === displayPCO2Unit.value) {
-    return formatValue(props.inputParams.param1Value, 'pCO2')
+    value = props.inputParams.param1Value
+  } else if (props.inputParams && props.inputParams.param2Type === 'pCO2' && props.inputParams.param2Unit === displayPCO2Unit.value) {
+    value = props.inputParams.param2Value
+  } else {
+    value = convertPCO2(props.results.pCO2, displayPCO2Unit.value)
   }
-  if (props.inputParams && props.inputParams.param2Type === 'pCO2' && props.inputParams.param2Unit === displayPCO2Unit.value) {
-    return formatValue(props.inputParams.param2Value, 'pCO2')
-  }
-  return formatValue(convertPCO2(props.results.pCO2, displayPCO2Unit.value), 'pCO2')
+
+  // Format with appropriate precision based on unit
+  const precision = displayPCO2Unit.value === 'atm' ? 6 : displayPCO2Unit.value === 'Pa' ? 1 : 0
+  return value.toFixed(precision)
 })
 </script>

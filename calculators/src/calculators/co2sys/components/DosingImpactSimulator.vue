@@ -330,13 +330,13 @@
 
           <!-- Main Parameters -->
           <CardSection title="Main Parameters" :collapsible="true" v-model:collapsed="mainParamsCollapsed">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm table-fixed">
               <thead class="bg-gray-100">
                 <tr>
-                  <th class="px-4 py-2 text-left font-semibold text-gray-700">Parameter</th>
-                  <th class="px-4 py-2 text-center font-semibold text-gray-700">Units</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700">Before</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700">After</th>
+                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Parameter</th>
+                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">Before</th>
+                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">After</th>
+                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Units</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
@@ -376,13 +376,13 @@
 
           <!-- Carbonate Chemistry -->
           <CardSection title="Carbonate Chemistry" :collapsible="true" v-model:collapsed="carbonateChemCollapsed">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm table-fixed">
               <thead class="bg-gray-100">
                 <tr>
-                  <th class="px-4 py-2 text-left font-semibold text-gray-700">Species</th>
-                  <th class="px-4 py-2 text-center font-semibold text-gray-700">Units</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700">Before</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700">After</th>
+                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Species</th>
+                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">Before</th>
+                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">After</th>
+                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Units</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
@@ -418,13 +418,13 @@
 
           <!-- Saturation States -->
           <CardSection title="Saturation States" :collapsible="true" v-model:collapsed="saturationCollapsed">
-            <table class="w-full text-sm">
+            <table class="w-full text-sm table-fixed">
               <thead class="bg-gray-100">
                 <tr>
-                  <th class="px-4 py-2 text-left font-semibold text-gray-700">Mineral</th>
-                  <th class="px-4 py-2 text-center font-semibold text-gray-700">Units</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700">Before</th>
-                  <th class="px-4 py-2 text-right font-semibold text-gray-700">After</th>
+                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Mineral</th>
+                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">Before</th>
+                  <th class="px-4 py-2 text-right font-semibold text-gray-700 w-[24%]">After</th>
+                  <th class="px-4 py-2 text-left font-semibold text-gray-700 w-[26%]">Units</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">

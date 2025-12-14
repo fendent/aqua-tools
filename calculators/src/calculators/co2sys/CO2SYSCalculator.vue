@@ -49,7 +49,7 @@
           <CardSection title="Input Parameters" :collapsible="true" v-model:collapsed="inputParamsCollapsed">
             <template #header-actions>
               <button
-                @click="resetParameters"
+                @click.stop="resetParameters"
                 class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors flex items-center gap-1"
                 title="Reset to defaults"
               >
@@ -80,7 +80,7 @@
           <CardSection title="Environmental Conditions" :collapsible="true" v-model:collapsed="environmentalCollapsed">
             <template #header-actions>
               <button
-                @click="resetEnvironmental"
+                @click.stop="resetEnvironmental"
                 class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors flex items-center gap-1"
                 title="Reset to defaults"
               >
@@ -100,7 +100,7 @@
           <CardSection title="Nutrients (Optional)" :collapsible="true" v-model:collapsed="nutrientsCollapsed">
             <template #header-actions>
               <button
-                @click="resetNutrients"
+                @click.stop="resetNutrients"
                 class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors flex items-center gap-1"
                 title="Reset to defaults"
               >
@@ -118,7 +118,7 @@
           <CardSection title="pH Scale" :collapsible="true" v-model:collapsed="pHScaleCollapsed">
             <template #header-actions>
               <button
-                @click="resetpHScale"
+                @click.stop="resetpHScale"
                 class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors flex items-center gap-1"
                 title="Reset to default"
               >
@@ -134,13 +134,13 @@
                 v-model="pHScale"
                 class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
               >
-                <option value="total">Total Scale (default)</option>
+                <option value="total">Total Scale</option>
                 <option value="sws">Seawater Scale (SWS)</option>
                 <option value="free">Free Scale</option>
-                <option value="nbs">NBS Scale</option>
+                <option value="nbs">NBS Scale (default)</option>
               </select>
               <p class="text-xs text-gray-500 mt-1">
-                Total scale is most common for marine chemistry
+                NBS scale is commonly used for probe calibration
               </p>
             </div>
           </CardSection>
@@ -149,7 +149,7 @@
           <CardSection title="Equilibrium Constants" :collapsible="true" v-model:collapsed="constantsCollapsed">
             <template #header-actions>
               <button
-                @click="resetConstants"
+                @click.stop="resetConstants"
                 class="text-xs px-3 py-1 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded transition-colors flex items-center gap-1"
                 title="Reset to defaults"
               >
@@ -285,6 +285,9 @@ const param2Type = ref('TA')
 const param2Value = ref(8.0) // dKH
 const param2Unit = ref('dKH')
 
+// Store last-used unit for each parameter type
+const parameterUnitPreferences = ref({})
+
 // Environmental conditions
 const temperature = ref(25)
 const salinity = ref(35)
@@ -296,7 +299,7 @@ const totalPhosphate = ref(0)
 const totalSilicate = ref(0)
 
 // pH scale
-const pHScale = ref('total')
+const pHScale = ref('nbs')
 
 // Equilibrium constant formulations
 const k12Formulation = ref('RRV93')
@@ -455,7 +458,7 @@ function loadSettings() {
       const settings = JSON.parse(saved)
       param1Type.value = settings.param1Type || 'pH'
       param1Value.value = settings.param1Value || 8.1
-      param1Unit.value = settings.param1Unit || 'total'
+      param1Unit.value = settings.param1Unit || 'nbs'
       param2Type.value = settings.param2Type || 'TA'
       param2Value.value = settings.param2Value || 8.0
       param2Unit.value = settings.param2Unit || 'dKH'
@@ -465,7 +468,7 @@ function loadSettings() {
       calcium.value = settings.calcium !== undefined ? settings.calcium : null
       totalPhosphate.value = settings.totalPhosphate || 0
       totalSilicate.value = settings.totalSilicate || 0
-      pHScale.value = settings.pHScale || 'total'
+      pHScale.value = settings.pHScale || 'nbs'
       k12Formulation.value = settings.k12Formulation || 'RRV93'
       kso4Formulation.value = settings.kso4Formulation || 'D90a'
       kfFormulation.value = settings.kfFormulation || 'DR79'
@@ -482,6 +485,9 @@ function loadSettings() {
       mineralSaturationCollapsed.value = settings.mineralSaturationCollapsed !== undefined ? settings.mineralSaturationCollapsed : false
       calculationMethodsCollapsed.value = settings.calculationMethodsCollapsed !== undefined ? settings.calculationMethodsCollapsed : false
       aboutToolCollapsed.value = settings.aboutToolCollapsed !== undefined ? settings.aboutToolCollapsed : false
+      selectedMode.value = settings.selectedMode || 'normal'
+      // Load parameter unit preferences
+      parameterUnitPreferences.value = settings.parameterUnitPreferences || {}
     } catch (e) {
       console.error('Failed to load settings:', e)
     }
@@ -519,7 +525,10 @@ function saveSettings() {
     speciesDistributionCollapsed: speciesDistributionCollapsed.value,
     mineralSaturationCollapsed: mineralSaturationCollapsed.value,
     calculationMethodsCollapsed: calculationMethodsCollapsed.value,
-    aboutToolCollapsed: aboutToolCollapsed.value
+    aboutToolCollapsed: aboutToolCollapsed.value,
+    selectedMode: selectedMode.value,
+    // Save parameter unit preferences
+    parameterUnitPreferences: parameterUnitPreferences.value
   }
   localStorage.setItem('co2sys_settings', JSON.stringify(settings))
 }
@@ -540,6 +549,34 @@ const autoCalculate = () => {
   }, 500)
 }
 
+// Watch for unit changes and save preferences
+watch(param1Unit, (newUnit) => {
+  if (param1Type.value) {
+    parameterUnitPreferences.value[param1Type.value] = newUnit
+  }
+})
+
+watch(param2Unit, (newUnit) => {
+  if (param2Type.value) {
+    parameterUnitPreferences.value[param2Type.value] = newUnit
+  }
+})
+
+// Watch for parameter type changes and restore saved units or use defaults
+watch(param1Type, (newType) => {
+  if (newType && PARAMETER_TYPES[newType]) {
+    // Use saved preference if available, otherwise use default
+    param1Unit.value = parameterUnitPreferences.value[newType] || PARAMETER_TYPES[newType].defaultUnit
+  }
+})
+
+watch(param2Type, (newType) => {
+  if (newType && PARAMETER_TYPES[newType]) {
+    // Use saved preference if available, otherwise use default
+    param2Unit.value = parameterUnitPreferences.value[newType] || PARAMETER_TYPES[newType].defaultUnit
+  }
+})
+
 // Watch for parameter changes and auto-calculate
 watch([
   param1Type, param1Value, param1Unit,
@@ -552,8 +589,9 @@ watch([
   autoCalculate()
 })
 
-// Watch for collapsed state changes and save
+// Watch for collapsed state changes and mode changes, then save
 watch([
+  selectedMode,
   inputParamsCollapsed,
   environmentalCollapsed,
   nutrientsCollapsed,
@@ -573,7 +611,7 @@ watch([
 function resetParameters() {
   param1Type.value = 'pH'
   param1Value.value = 8.1
-  param1Unit.value = 'total'
+  param1Unit.value = 'nbs'
   param2Type.value = 'TA'
   param2Value.value = 8.0
   param2Unit.value = 'dKH'
@@ -592,7 +630,7 @@ function resetNutrients() {
 }
 
 function resetpHScale() {
-  pHScale.value = 'total'
+  pHScale.value = 'nbs'
 }
 
 function resetConstants() {

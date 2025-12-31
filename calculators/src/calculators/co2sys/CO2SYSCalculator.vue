@@ -79,6 +79,11 @@
               v-model:salinity="salinity"
               v-model:pressure="pressure"
               v-model:calcium="calcium"
+              v-model:tempUnit="tempUnit"
+              v-model:salinityUnit="salinityUnit"
+              v-model:pressureUnit="pressureUnit"
+              v-model:calciumUnit="calciumUnit"
+              :auto-calculated-calcium="autoCalculatedCalcium"
             />
           </CardSection>
 
@@ -90,6 +95,8 @@
             <NutrientInputs
               v-model:phosphate="totalPhosphate"
               v-model:silicate="totalSilicate"
+              v-model:phosphateUnit="phosphateUnit"
+              v-model:silicateUnit="silicateUnit"
             />
           </CardSection>
 
@@ -197,9 +204,9 @@
     <!-- Dosing Impact Simulator -->
     <template v-if="selectedMode === 'dosing'">
       <DosingImpactSimulator
-        v-model:temperature="temperature"
-        v-model:salinity="salinity"
-        v-model:ph-scale="pHScale"
+        :temperature="temperature"
+        :salinity="salinity"
+        :ph-scale="pHScale"
       />
     </template>
 
@@ -220,10 +227,12 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { calculateCarbonateSystem } from '../../utils/carbonate/index.js'
 import { isValidParameterPair, PARAMETER_TYPES } from '../../utils/carbonate/index.js'
 import { K12_FORMULATIONS, KSO4_FORMULATIONS, KF_FORMULATIONS, BORON_FORMULATIONS } from '../../utils/carbonate/index.js'
+import { calculateCalciumFromSalinity } from '../../utils/carbonate/constants/other.js'
+import { convertCalcium } from '../../utils/carbonate/helpers/units.js'
 import { checkFormulationRange } from '../../utils/carbonate/helpers/formulationRanges.js'
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid'
-import { useCollapsibleSections } from '../../composables/useCollapsibleSections.js'
 import { createFormulationStatus } from './helpers/formulationHelpers.js'
+import { migrateLocalStorage } from '../../composables/useLocalStorageMigration.js'
 import CardSection from '../../components/CardSection.vue'
 import ParameterInputCard from './components/ParameterInputCard.vue'
 import EnvironmentalInputs from './components/EnvironmentalInputs.vue'
@@ -236,6 +245,9 @@ import FormulationSelector from './components/FormulationSelector.vue'
 import ResetButton from '../../components/ResetButton.vue'
 import PHScaleSelect from '../../components/PHScaleSelect.vue'
 
+// Migrate old localStorage data with special-character units
+migrateLocalStorage()
+
 // Mode selection
 const modes = [
   { id: 'normal', name: 'Single Calculation' },
@@ -246,7 +258,7 @@ const selectedMode = ref('normal')
 // Input parameters
 const param1Type = ref('pH')
 const param1Value = ref(8.1)
-const param1Unit = ref('total')
+const param1Unit = ref('nbs')
 
 const param2Type = ref('TA')
 const param2Value = ref(8.0) // dKH
@@ -258,12 +270,20 @@ const parameterUnitPreferences = ref({})
 // Environmental conditions
 const temperature = ref(25)
 const salinity = ref(35)
-const pressure = ref(0)
+const pressure = ref(1.01325) // 1 atm in bar (surface pressure)
 const calcium = ref(null) // Will be calculated from salinity if null
 
 // Nutrients (optional)
 const totalPhosphate = ref(0)
 const totalSilicate = ref(0)
+
+// Unit preferences for environmental and nutrient parameters
+const tempUnit = ref('degC')
+const salinityUnit = ref('PSU')
+const pressureUnit = ref('bar')
+const calciumUnit = ref('ppm')
+const phosphateUnit = ref('ppm')
+const silicateUnit = ref('ppm')
 
 // pH scale
 const pHScale = ref('nbs')
@@ -279,33 +299,18 @@ const results = ref(null)
 const errorMessage = ref('')
 const showExportDialog = ref(false)
 
-// Collapsed states for sections
-const collapsed = useCollapsibleSections('co2sys_collapsed', {
-  inputParams: false,
-  environmental: false,
-  nutrients: false,
-  pHScale: false,
-  constants: false,
-  pHValues: false,
-  mainParameters: false,
-  speciesDistribution: false,
-  mineralSaturation: false,
-  calculationMethods: false,
-  aboutTool: false
-})
-
-// Create aliases for easier access (maintain backward compatibility)
-const inputParamsCollapsed = collapsed.inputParams
-const environmentalCollapsed = collapsed.environmental
-const nutrientsCollapsed = collapsed.nutrients
-const pHScaleCollapsed = collapsed.pHScale
-const constantsCollapsed = collapsed.constants
-const pHValuesCollapsed = collapsed.pHValues
-const mainParametersCollapsed = collapsed.mainParameters
-const speciesDistributionCollapsed = collapsed.speciesDistribution
-const mineralSaturationCollapsed = collapsed.mineralSaturation
-const calculationMethodsCollapsed = collapsed.calculationMethods
-const aboutToolCollapsed = collapsed.aboutTool
+// Collapsed states for sections (will be loaded from settings)
+const inputParamsCollapsed = ref(false)
+const environmentalCollapsed = ref(false)
+const nutrientsCollapsed = ref(false)
+const pHScaleCollapsed = ref(false)
+const constantsCollapsed = ref(false)
+const pHValuesCollapsed = ref(false)
+const mainParametersCollapsed = ref(false)
+const speciesDistributionCollapsed = ref(false)
+const mineralSaturationCollapsed = ref(false)
+const calculationMethodsCollapsed = ref(false)
+const aboutToolCollapsed = ref(false)
 
 // Computed
 const canCalculate = computed(() => {
@@ -316,6 +321,13 @@ const canCalculate = computed(() => {
          param1Type.value !== param2Type.value &&
          temperature.value > 0 &&
          salinity.value > 0
+})
+
+// Auto-calculated calcium from salinity (for placeholder display)
+const autoCalculatedCalcium = computed(() => {
+  const calciumMolPerKg = calculateCalciumFromSalinity(salinity.value)
+  const calciumMmolPerKg = calciumMolPerKg * 1000 // Convert mol/kg to mmol/kg
+  return convertCalcium(calciumMmolPerKg, 'mmol_kg', calciumUnit.value)
 })
 
 // Formulation range checks
@@ -427,6 +439,25 @@ function loadSettings() {
       selectedMode.value = settings.selectedMode || 'normal'
       // Load parameter unit preferences
       parameterUnitPreferences.value = settings.parameterUnitPreferences || {}
+      // Load environmental and nutrient unit preferences
+      tempUnit.value = settings.tempUnit || 'degC'
+      salinityUnit.value = settings.salinityUnit || 'PSU'
+      pressureUnit.value = settings.pressureUnit || 'bar'
+      calciumUnit.value = settings.calciumUnit || 'ppm'
+      phosphateUnit.value = settings.phosphateUnit || 'ppm'
+      silicateUnit.value = settings.silicateUnit || 'ppm'
+      // Load collapsed states
+      inputParamsCollapsed.value = settings.inputParamsCollapsed !== undefined ? settings.inputParamsCollapsed : false
+      environmentalCollapsed.value = settings.environmentalCollapsed !== undefined ? settings.environmentalCollapsed : false
+      nutrientsCollapsed.value = settings.nutrientsCollapsed !== undefined ? settings.nutrientsCollapsed : false
+      pHScaleCollapsed.value = settings.pHScaleCollapsed !== undefined ? settings.pHScaleCollapsed : false
+      constantsCollapsed.value = settings.constantsCollapsed !== undefined ? settings.constantsCollapsed : false
+      pHValuesCollapsed.value = settings.pHValuesCollapsed !== undefined ? settings.pHValuesCollapsed : false
+      mainParametersCollapsed.value = settings.mainParametersCollapsed !== undefined ? settings.mainParametersCollapsed : false
+      speciesDistributionCollapsed.value = settings.speciesDistributionCollapsed !== undefined ? settings.speciesDistributionCollapsed : false
+      mineralSaturationCollapsed.value = settings.mineralSaturationCollapsed !== undefined ? settings.mineralSaturationCollapsed : false
+      calculationMethodsCollapsed.value = settings.calculationMethodsCollapsed !== undefined ? settings.calculationMethodsCollapsed : false
+      aboutToolCollapsed.value = settings.aboutToolCollapsed !== undefined ? settings.aboutToolCollapsed : false
     } catch (e) {
       console.error('Failed to load settings:', e)
     }
@@ -455,7 +486,26 @@ function saveSettings() {
     boronFormulation: boronFormulation.value,
     selectedMode: selectedMode.value,
     // Save parameter unit preferences
-    parameterUnitPreferences: parameterUnitPreferences.value
+    parameterUnitPreferences: parameterUnitPreferences.value,
+    // Save environmental and nutrient unit preferences
+    tempUnit: tempUnit.value,
+    salinityUnit: salinityUnit.value,
+    pressureUnit: pressureUnit.value,
+    calciumUnit: calciumUnit.value,
+    phosphateUnit: phosphateUnit.value,
+    silicateUnit: silicateUnit.value,
+    // Save collapsed states
+    inputParamsCollapsed: inputParamsCollapsed.value,
+    environmentalCollapsed: environmentalCollapsed.value,
+    nutrientsCollapsed: nutrientsCollapsed.value,
+    pHScaleCollapsed: pHScaleCollapsed.value,
+    constantsCollapsed: constantsCollapsed.value,
+    pHValuesCollapsed: pHValuesCollapsed.value,
+    mainParametersCollapsed: mainParametersCollapsed.value,
+    speciesDistributionCollapsed: speciesDistributionCollapsed.value,
+    mineralSaturationCollapsed: mineralSaturationCollapsed.value,
+    calculationMethodsCollapsed: calculationMethodsCollapsed.value,
+    aboutToolCollapsed: aboutToolCollapsed.value
   }
   localStorage.setItem('co2sys_settings', JSON.stringify(settings))
 }
@@ -511,7 +561,9 @@ watch([
   temperature, salinity, pressure, calcium,
   totalPhosphate, totalSilicate,
   pHScale,
-  k12Formulation, kso4Formulation, kfFormulation, boronFormulation
+  k12Formulation, kso4Formulation, kfFormulation, boronFormulation,
+  tempUnit, salinityUnit, pressureUnit, calciumUnit,
+  phosphateUnit, silicateUnit
 ], () => {
   autoCalculate()
 })

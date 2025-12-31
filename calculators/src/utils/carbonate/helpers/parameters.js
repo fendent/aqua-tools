@@ -12,7 +12,7 @@ export const PARAMETER_TYPES = {
     id: 'pH',
     name: 'pH',
     description: 'Measure of acidity/alkalinity',
-    units: ['total', 'sws', 'free', 'nbs'],
+    units: ['nbs', 'free', 'total', 'sws'],
     unitLabels: { total: 'Total', sws: 'Seawater (SWS)', free: 'Free', nbs: 'NBS' },
     defaultUnit: 'nbs',
     typical: { min: 7.8, max: 8.4, reef: 8.1 },
@@ -163,13 +163,13 @@ export const TOOLTIPS = {
 
   revelleFactor: 'Buffer factor - indicates how much pH changes with CO2 addition. Higher values mean pH is more sensitive to CO2 changes. Typical range: 8-15.',
 
-  pHScale: 'Different pH scales account for different ion interactions. Total scale (most common) includes HSO4- in proton concentration. SWS also includes HF.',
+  pHScale: 'Different pH scales account for different ion interactions. Total scale includes HSO4- in proton concentration. SWS also includes HF.',
 
   temperature: 'Temperature affects all equilibrium constants. Typical reef: 24-26°C. Higher temperature generally decreases CO2 solubility.',
 
   salinity: 'Salinity affects equilibrium constants and total ion concentrations. Typical seawater: 35 PSU. Reef tanks: 33-36 PSU.',
 
-  pressure: 'Pressure affects equilibrium constants. Surface = 0 bar. Increases ~1 bar per 10m depth. Important for deep water calculations.',
+  pressure: 'Pressure affects equilibrium constants. Surface = 1 atm. Increases ~1 bar per 10m depth. Important for deep water calculations.',
 
   calcium: 'Calcium concentration affects saturation states. Typical seawater: ~10.3 mmol/kg. Reef target: 400-450 ppm (10-11 mmol/kg).'
 }

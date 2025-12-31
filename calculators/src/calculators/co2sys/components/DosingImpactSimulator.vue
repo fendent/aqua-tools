@@ -581,6 +581,7 @@ import ResetButton from '../../../components/ResetButton.vue'
 import TemperatureUnitSelect from '../../../components/TemperatureUnitSelect.vue'
 import SalinityUnitSelect from '../../../components/SalinityUnitSelect.vue'
 import { InformationCircleIcon, BuildingStorefrontIcon, BeakerIcon, ScaleIcon } from '@heroicons/vue/24/outline'
+import { clearStorageIfVersionMismatch } from '../../../composables/useLocalStorageMigration.js'
 
 const props = defineProps({
   temperature: { type: Number, required: true },
@@ -589,6 +590,9 @@ const props = defineProps({
 })
 
 const STORAGE_KEY = 'dosingImpactSimulatorSettings'
+
+// Clear localStorage if version has changed (fixes precision issues from old data)
+clearStorageIfVersionMismatch('dosingImpactSimulatorSettings')
 
 // Load saved settings
 const loadSettings = () => {
@@ -617,15 +621,15 @@ const tankVolumeBase = ref(
 // Units (saved to localStorage)
 const alkUnit = ref(settings.alkUnit || 'dKH')
 const calciumUnit = ref(settings.calciumUnit || 'ppm')
-const temperatureUnit = ref(settings.temperatureUnit || '°C')
+const temperatureUnit = ref(settings.temperatureUnit || 'degC')
 const salinityUnit = ref(settings.salinityUnit || 'PSU')
 
-// Base values stored in standard units (µmol/kg for alk, ppm for calcium, °C for temp, PSU for salinity)
+// Base values stored in standard units (umol_kg for alk, ppm for calcium, degC for temp, PSU for salinity)
 // If saved values exist, convert them to base units; otherwise use defaults
 const currentAlkBase = ref(
   settings.currentAlk !== undefined && settings.alkUnit
-    ? convertAlkalinity(settings.currentAlk, settings.alkUnit, 'µmol/kg')
-    : convertAlkalinity(8.0, 'dKH', 'µmol/kg')
+    ? convertAlkalinity(settings.currentAlk, settings.alkUnit, 'umol_kg')
+    : convertAlkalinity(8.0, 'dKH', 'umol_kg')
 )
 const currentCalciumBase = ref(
   settings.currentCalcium !== undefined && settings.calciumUnit
@@ -634,7 +638,7 @@ const currentCalciumBase = ref(
 )
 const temperatureBase = ref(
   settings.localTemperature !== undefined && settings.temperatureUnit
-    ? convertTemperature(settings.localTemperature, settings.temperatureUnit, '°C')
+    ? convertTemperature(settings.localTemperature, settings.temperatureUnit, 'degC')
     : props.temperature
 )
 const salinityBase = ref(
@@ -666,7 +670,7 @@ const tankVolume = ref(
 const currentAlk = ref(
   originalAlkUnit.value === alkUnit.value && originalAlkValue.value !== null
     ? originalAlkValue.value
-    : convertAlkalinity(currentAlkBase.value, 'µmol/kg', alkUnit.value)
+    : convertAlkalinity(currentAlkBase.value, 'umol_kg', alkUnit.value)
 )
 const currentCalcium = ref(
   originalCalciumUnit.value === calciumUnit.value && originalCalciumValue.value !== null
@@ -676,7 +680,7 @@ const currentCalcium = ref(
 const localTemperature = ref(
   originalTemperatureUnit.value === temperatureUnit.value && originalTemperatureValue.value !== null
     ? originalTemperatureValue.value
-    : convertTemperature(temperatureBase.value, '°C', temperatureUnit.value)
+    : convertTemperature(temperatureBase.value, 'degC', temperatureUnit.value)
 )
 const localSalinity = ref(
   originalSalinityUnit.value === salinityUnit.value && originalSalinityValue.value !== null
@@ -695,8 +699,8 @@ const salinityFocused = ref(false)
 const displayAlkUnit = ref(settings.displayAlkUnit || alkUnit.value)
 const displayCalciumUnit = ref(settings.displayCalciumUnit || calciumUnit.value)
 const displayPHScale = ref(settings.displayPHScale || 'nbs')
-const pco2Unit = ref(settings.pco2Unit || 'µatm')
-const dicUnit = ref(settings.dicUnit || 'µmol/kg')
+const pco2Unit = ref(settings.pco2Unit || 'uatm')
+const dicUnit = ref(settings.dicUnit || 'umol_kg')
 
 // Dosing configuration
 const doseParameter = ref(settings.doseParameter || 'alkalinity')
@@ -958,7 +962,7 @@ watch(currentAlkBase, () => {
     if (originalAlkUnit.value === alkUnit.value && originalAlkValue.value !== null) {
       currentAlk.value = originalAlkValue.value
     } else {
-      currentAlk.value = convertAlkalinity(currentAlkBase.value, 'µmol/kg', alkUnit.value)
+      currentAlk.value = convertAlkalinity(currentAlkBase.value, 'umol_kg', alkUnit.value)
     }
   }
 })
@@ -980,7 +984,7 @@ watch(temperatureBase, () => {
     if (originalTemperatureUnit.value === temperatureUnit.value && originalTemperatureValue.value !== null) {
       localTemperature.value = originalTemperatureValue.value
     } else {
-      localTemperature.value = convertTemperature(temperatureBase.value, '°C', temperatureUnit.value)
+      localTemperature.value = convertTemperature(temperatureBase.value, 'degC', temperatureUnit.value)
     }
   }
 })
@@ -1014,7 +1018,7 @@ watch(alkUnit, (newUnit) => {
     if (originalAlkUnit.value === newUnit && originalAlkValue.value !== null) {
       currentAlk.value = originalAlkValue.value
     } else {
-      currentAlk.value = convertAlkalinity(currentAlkBase.value, 'µmol/kg', newUnit)
+      currentAlk.value = convertAlkalinity(currentAlkBase.value, 'umol_kg', newUnit)
     }
   }
 })
@@ -1036,7 +1040,7 @@ watch(temperatureUnit, (newUnit) => {
     if (originalTemperatureUnit.value === newUnit && originalTemperatureValue.value !== null) {
       localTemperature.value = originalTemperatureValue.value
     } else {
-      localTemperature.value = convertTemperature(temperatureBase.value, '°C', newUnit)
+      localTemperature.value = convertTemperature(temperatureBase.value, 'degC', newUnit)
     }
   }
 })
@@ -1134,7 +1138,7 @@ function handleAlkBlur() {
   // Store the user's input as the original to avoid precision loss
   originalAlkValue.value = parseFloat(currentAlk.value)
   originalAlkUnit.value = alkUnit.value
-  currentAlkBase.value = convertAlkalinity(originalAlkValue.value, alkUnit.value, 'µmol/kg')
+  currentAlkBase.value = convertAlkalinity(originalAlkValue.value, alkUnit.value, 'umol_kg')
 }
 
 function handleCalciumBlur() {
@@ -1150,7 +1154,7 @@ function handleTemperatureBlur() {
   // Store the user's input as the original to avoid precision loss
   originalTemperatureValue.value = parseFloat(localTemperature.value)
   originalTemperatureUnit.value = temperatureUnit.value
-  temperatureBase.value = convertTemperature(originalTemperatureValue.value, temperatureUnit.value, '°C')
+  temperatureBase.value = convertTemperature(originalTemperatureValue.value, temperatureUnit.value, 'degC')
 }
 
 function handleSalinityBlur() {
@@ -1357,7 +1361,7 @@ function resetTankParameters() {
   currentpH.value = 8.1
   currentPHScale.value = 'nbs'
 
-  currentAlkBase.value = convertAlkalinity(8.0, 'dKH', 'µmol/kg')
+  currentAlkBase.value = convertAlkalinity(8.0, 'dKH', 'umol_kg')
   alkUnit.value = 'dKH'
   currentAlk.value = 8.0
   originalAlkValue.value = 8.0
@@ -1370,10 +1374,10 @@ function resetTankParameters() {
   originalCalciumUnit.value = 'ppm'
 
   temperatureBase.value = props.temperature
-  temperatureUnit.value = '°C'
+  temperatureUnit.value = 'degC'
   localTemperature.value = props.temperature
   originalTemperatureValue.value = props.temperature
-  originalTemperatureUnit.value = '°C'
+  originalTemperatureUnit.value = 'degC'
 
   salinityBase.value = props.salinity
   salinityUnit.value = 'PSU'
@@ -1404,8 +1408,8 @@ function resetMainParametersUnits() {
 }
 
 function resetCarbonateChemistryUnits() {
-  pco2Unit.value = 'µatm'
-  dicUnit.value = 'µmol/kg'
+  pco2Unit.value = 'uatm'
+  dicUnit.value = 'umol_kg'
 }
 
 onMounted(() => {

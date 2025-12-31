@@ -111,8 +111,8 @@
           v-model="displaySpeciesUnit"
           class="px-4 py-2 text-sm border rounded-lg bg-white min-w-[140px]"
         >
-          <option value="µmol/kg">µmol/kg</option>
-          <option value="mmol/kg">mmol/kg</option>
+          <option value="umol_kg">µmol/kg</option>
+          <option value="mmol_kg">mmol/kg</option>
         </select>
       </div>
     </div>
@@ -137,10 +137,10 @@ defineProps({
 
 defineEmits(['update:collapsed'])
 
-const displaySpeciesUnit = ref('µmol/kg')
+const displaySpeciesUnit = ref('umol_kg')
 
 function convertSpeciesConcentration(value, toUnit) {
-  return convertConcentration(value, 'µmol/kg', toUnit)
+  return convertConcentration(value, 'umol_kg', toUnit)
 }
 
 function formatPercent(value, decimals) {

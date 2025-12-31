@@ -18,6 +18,14 @@
             </thead>
             <tbody class="divide-y divide-gray-400">
               <tr class="even:bg-gray-50 hover:bg-gray-100">
+                <td class="px-4 py-2">NBS</td>
+                <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_nbs, 'pH') }}</td>
+              </tr>
+              <tr class="even:bg-gray-50 hover:bg-gray-100">
+                <td class="px-4 py-2">Free</td>
+                <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_free, 'pH') }}</td>
+              </tr>
+              <tr class="even:bg-gray-50 hover:bg-gray-100">
                 <td class="px-4 py-2">Total</td>
                 <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_total, 'pH') }}</td>
               </tr>
@@ -25,20 +33,12 @@
                 <td class="px-4 py-2">Seawater (SWS)</td>
                 <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_sws, 'pH') }}</td>
               </tr>
-              <tr class="even:bg-gray-50 hover:bg-gray-100">
-                <td class="px-4 py-2">Free</td>
-                <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_free, 'pH') }}</td>
-              </tr>
-              <tr class="even:bg-gray-50 hover:bg-gray-100">
-                <td class="px-4 py-2">NBS</td>
-                <td class="px-4 py-2 text-right font-mono">{{ formatValue(results.pH_nbs, 'pH') }}</td>
-              </tr>
             </tbody>
           </table>
         </div>
 
         <div class="text-xs text-gray-600 bg-gray-50 p-3 rounded">
-          Different pH scales account for different ion interactions. Total scale (most common) includes HSO4- in proton concentration. NBS scale is commonly used for probe calibration.
+          Different pH scales account for different ion interactions. Total scale includes HSO4- in proton concentration. NBS scale is commonly used for probe calibration.
         </div>
       </div>
     </CardSection>
@@ -161,21 +161,21 @@ const props = defineProps({
 defineEmits(['export', 'update:phScale', 'update:phValuesCollapsed', 'update:mainParametersCollapsed', 'update:speciesDistributionCollapsed', 'update:mineralSaturationCollapsed', 'update:calculationMethodsCollapsed'])
 
 const displayTAUnit = ref('dKH')
-const displayDICUnit = ref('mmol/kg')
-const displayPCO2Unit = ref('µatm')
+const displayDICUnit = ref('mmol_kg')
+const displayPCO2Unit = ref('uatm')
 
 function convertTA(value, toUnit) {
-  return convertAlkalinity(value, 'µmol/kg', toUnit)
+  return convertAlkalinity(value, 'umol_kg', toUnit)
 }
 
 function convertDIC(value, toUnit) {
-  return convertConcentration(value, 'µmol/kg', toUnit)
+  return convertConcentration(value, 'umol_kg', toUnit)
 }
 
 function convertPCO2(value, toUnit) {
   // Convert pressure from bar to atm for pCO2 conversion
   const pressureInAtm = convertPressure(props.pressure, 'bar', 'atm')
-  return convertpCO2(value, 'µatm', toUnit, pressureInAtm)
+  return convertpCO2(value, 'uatm', toUnit, pressureInAtm)
 }
 
 const displayTAValue = computed(() => {
@@ -218,7 +218,7 @@ const displayPCO2Value = computed(() => {
 
 function resetMainParameterUnits() {
   displayTAUnit.value = 'dKH'
-  displayDICUnit.value = 'mmol/kg'
-  displayPCO2Unit.value = 'µatm'
+  displayDICUnit.value = 'mmol_kg'
+  displayPCO2Unit.value = 'uatm'
 }
 </script>

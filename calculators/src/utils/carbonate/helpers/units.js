@@ -10,7 +10,7 @@ import { getNormalizedUnit } from '../../unitMappings.js'
 const UMOL_TO_MEQ = 0.001 // µmol/kg to meq/L
 const MEQ_TO_UMOL = 1000 // meq/L to µmol/kg
 const DKH_TO_MEQ = 0.357143 // dKH to meq/L (1 dKH = 0.357143 meq/L)
-const MEQ_TO_DKH = 2.8 // meq/L to dKH
+const MEQ_TO_DKH = 1 / DKH_TO_MEQ // meq/L to dKH (inverse for precision)
 
 /**
  * Convert alkalinity between units

@@ -16,7 +16,8 @@
           @keydown.enter="handleTemperatureBlur"
         />
         <TemperatureUnitSelect
-          v-model="tempUnit"
+          :model-value="tempUnit"
+          @update:model-value="$emit('update:tempUnit', $event)"
           select-class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
         />
       </div>
@@ -42,7 +43,8 @@
           @keydown.enter="handleSalinityBlur"
         />
         <SalinityUnitSelect
-          v-model="salinityUnit"
+          :model-value="salinityUnit"
+          @update:model-value="$emit('update:salinityUnit', $event)"
           select-class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
         />
       </div>
@@ -68,12 +70,13 @@
           @keydown.enter="handlePressureBlur"
         />
         <PressureUnitSelect
-          v-model="pressureUnit"
+          :model-value="pressureUnit"
+          @update:model-value="$emit('update:pressureUnit', $event)"
           select-class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
         />
       </div>
       <p class="text-xs text-gray-500 mt-1">
-        Surface = 0. Increases ~1 bar per 10m depth. Usually 0 for aquariums.
+        Surface = 1 atm. Increases ~1 bar per 10m depth. Use 1 atm for aquariums at sea level.
       </p>
     </div>
 
@@ -88,14 +91,15 @@
           type="number"
           step="0.1"
           min="0"
-          placeholder="Auto-calculated from salinity"
+          :placeholder="calciumPlaceholder"
           class="w-full px-3 py-2 border rounded-lg"
           @focus="calciumFocused = true"
           @blur="handleCalciumBlur"
           @keydown.enter="handleCalciumBlur"
         />
         <CalciumUnitSelect
-          v-model="calciumUnit"
+          :model-value="calciumUnit"
+          @update:model-value="$emit('update:calciumUnit', $event)"
           select-class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
         />
       </div>
@@ -107,9 +111,8 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { convertTemperature, convertCalcium, convertPressure, convertSalinity } from '../../../utils/carbonate/helpers/units.js'
-import { useLocalStorageRef } from '../../../composables/useLocalStorageRef.js'
 import TemperatureUnitSelect from '../../../components/TemperatureUnitSelect.vue'
 import SalinityUnitSelect from '../../../components/SalinityUnitSelect.vue'
 import PressureUnitSelect from '../../../components/PressureUnitSelect.vue'
@@ -119,22 +122,30 @@ const props = defineProps({
   temperature: { type: Number, required: true },
   salinity: { type: Number, required: true },
   pressure: { type: Number, required: true },
-  calcium: { type: Number, default: null }
+  calcium: { type: Number, default: null },
+  tempUnit: { type: String, required: true },
+  salinityUnit: { type: String, required: true },
+  pressureUnit: { type: String, required: true },
+  calciumUnit: { type: String, required: true },
+  autoCalculatedCalcium: { type: Number, required: true }
 })
 
-const emit = defineEmits(['update:temperature', 'update:salinity', 'update:pressure', 'update:calcium'])
-
-// Unit states with localStorage persistence
-const tempUnit = useLocalStorageRef('co2sys-tempUnit', '°C')
-const salinityUnit = useLocalStorageRef('co2sys-salinityUnit', 'PSU')
-const pressureUnit = useLocalStorageRef('co2sys-pressureUnit', 'bar')
-const calciumUnit = useLocalStorageRef('co2sys-calciumUnit', 'mmol/kg')
+const emit = defineEmits([
+  'update:temperature',
+  'update:salinity',
+  'update:pressure',
+  'update:calcium',
+  'update:tempUnit',
+  'update:salinityUnit',
+  'update:pressureUnit',
+  'update:calciumUnit'
+])
 
 // Local values for editing (prevents re-calculation while typing)
-const localTemperature = ref(convertTemperature(props.temperature, '°C', tempUnit.value))
-const localSalinity = ref(convertSalinity(props.salinity, 'PSU', salinityUnit.value))
-const localPressure = ref(convertPressure(props.pressure, 'bar', pressureUnit.value))
-const localCalcium = ref(props.calcium === null ? '' : convertCalcium(props.calcium, 'mmol/kg', calciumUnit.value))
+const localTemperature = ref(convertTemperature(props.temperature, 'degC', props.tempUnit))
+const localSalinity = ref(convertSalinity(props.salinity, 'PSU', props.salinityUnit))
+const localPressure = ref(convertPressure(props.pressure, 'bar', props.pressureUnit))
+const localCalcium = ref(props.calcium === null ? '' : convertCalcium(props.calcium, 'mmol_kg', props.calciumUnit))
 
 // Track original user input to avoid precision loss on round-trip conversions
 const originalPressureValue = ref(null)
@@ -146,50 +157,65 @@ const salinityFocused = ref(false)
 const pressureFocused = ref(false)
 const calciumFocused = ref(false)
 
+// Calcium placeholder with auto-calculated value
+const calciumPlaceholder = computed(() => {
+  let formattedValue
+  if (props.calciumUnit === 'ppm') {
+    formattedValue = Math.round(props.autoCalculatedCalcium).toString()
+  } else if (props.calciumUnit === 'ppt') {
+    formattedValue = props.autoCalculatedCalcium.toFixed(2)
+  } else if (props.calciumUnit === 'mmol_kg') {
+    formattedValue = props.autoCalculatedCalcium.toFixed(1)
+  } else {
+    formattedValue = props.autoCalculatedCalcium.toFixed(1)
+  }
+  return `${formattedValue} (Auto-Calculated)`
+})
+
 // Sync local values from props when not focused
 watch(() => props.temperature, (newValue) => {
   if (!temperatureFocused.value) {
-    localTemperature.value = convertTemperature(newValue, '°C', tempUnit.value)
+    localTemperature.value = convertTemperature(newValue, 'degC', props.tempUnit)
   }
 })
 
 watch(() => props.salinity, (newValue) => {
   if (!salinityFocused.value) {
-    localSalinity.value = convertSalinity(newValue, 'PSU', salinityUnit.value)
+    localSalinity.value = convertSalinity(newValue, 'PSU', props.salinityUnit)
   }
 })
 
 watch(() => props.pressure, (newValue) => {
   if (!pressureFocused.value) {
     // If displaying in the original unit the user typed, use the original value
-    if (originalPressureUnit.value === pressureUnit.value && originalPressureValue.value !== null) {
+    if (originalPressureUnit.value === props.pressureUnit && originalPressureValue.value !== null) {
       localPressure.value = originalPressureValue.value
     } else {
-      localPressure.value = convertPressure(newValue, 'bar', pressureUnit.value)
+      localPressure.value = convertPressure(newValue, 'bar', props.pressureUnit)
     }
   }
 })
 
 watch(() => props.calcium, (newValue) => {
   if (!calciumFocused.value) {
-    localCalcium.value = newValue === null ? '' : convertCalcium(newValue, 'mmol/kg', calciumUnit.value)
+    localCalcium.value = newValue === null ? '' : convertCalcium(newValue, 'mmol_kg', props.calciumUnit)
   }
 })
 
 // Update local values when units change
-watch(tempUnit, () => {
+watch(() => props.tempUnit, () => {
   if (!temperatureFocused.value) {
-    localTemperature.value = convertTemperature(props.temperature, '°C', tempUnit.value)
+    localTemperature.value = convertTemperature(props.temperature, 'degC', props.tempUnit)
   }
 })
 
-watch(salinityUnit, () => {
+watch(() => props.salinityUnit, () => {
   if (!salinityFocused.value) {
-    localSalinity.value = convertSalinity(props.salinity, 'PSU', salinityUnit.value)
+    localSalinity.value = convertSalinity(props.salinity, 'PSU', props.salinityUnit)
   }
 })
 
-watch(pressureUnit, (newUnit) => {
+watch(() => props.pressureUnit, (newUnit) => {
   if (!pressureFocused.value) {
     // If switching back to the original unit the user typed, use the original value
     if (originalPressureUnit.value === newUnit && originalPressureValue.value !== null) {
@@ -200,22 +226,22 @@ watch(pressureUnit, (newUnit) => {
   }
 })
 
-watch(calciumUnit, () => {
+watch(() => props.calciumUnit, () => {
   if (!calciumFocused.value) {
-    localCalcium.value = props.calcium === null ? '' : convertCalcium(props.calcium, 'mmol/kg', calciumUnit.value)
+    localCalcium.value = props.calcium === null ? '' : convertCalcium(props.calcium, 'mmol_kg', props.calciumUnit)
   }
 })
 
 // Blur handlers (convert to base units before emitting)
 function handleTemperatureBlur() {
   temperatureFocused.value = false
-  const baseValue = convertTemperature(parseFloat(localTemperature.value), tempUnit.value, '°C')
+  const baseValue = convertTemperature(parseFloat(localTemperature.value), props.tempUnit, 'degC')
   emit('update:temperature', baseValue)
 }
 
 function handleSalinityBlur() {
   salinityFocused.value = false
-  const baseValue = convertSalinity(parseFloat(localSalinity.value), salinityUnit.value, 'PSU')
+  const baseValue = convertSalinity(parseFloat(localSalinity.value), props.salinityUnit, 'PSU')
   emit('update:salinity', baseValue)
 }
 
@@ -227,8 +253,8 @@ function handlePressureBlur() {
   pressureFocused.value = false
   // Store the user's input as the original to avoid precision loss
   originalPressureValue.value = parseFloat(localPressure.value)
-  originalPressureUnit.value = pressureUnit.value
-  const baseValue = convertPressure(originalPressureValue.value, pressureUnit.value, 'bar')
+  originalPressureUnit.value = props.pressureUnit
+  const baseValue = convertPressure(originalPressureValue.value, props.pressureUnit, 'bar')
   emit('update:pressure', baseValue)
 }
 
@@ -237,7 +263,7 @@ function handleCalciumBlur() {
   if (localCalcium.value === '') {
     emit('update:calcium', null)
   } else {
-    const baseValue = convertCalcium(parseFloat(localCalcium.value), calciumUnit.value, 'mmol/kg')
+    const baseValue = convertCalcium(parseFloat(localCalcium.value), props.calciumUnit, 'mmol_kg')
     emit('update:calcium', baseValue)
   }
 }

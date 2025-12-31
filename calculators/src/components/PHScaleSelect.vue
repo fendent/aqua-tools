@@ -20,7 +20,7 @@ import { computed } from 'vue'
 const props = defineProps({
   modelValue: {
     type: String,
-    required: true
+    default: 'nbs'
   },
   selectClass: {
     type: String,
@@ -38,17 +38,17 @@ defineEmits(['update:modelValue'])
 const options = computed(() => {
   if (props.labelFormat === 'abbrev') {
     return [
-      { value: 'total', label: 'Total' },
-      { value: 'sws', label: 'SWS' },
+      { value: 'nbs', label: 'NBS' },
       { value: 'free', label: 'Free' },
-      { value: 'nbs', label: 'NBS' }
+      { value: 'total', label: 'Total' },
+      { value: 'sws', label: 'SWS' }
     ]
   }
   return [
-    { value: 'total', label: 'Total' },
-    { value: 'sws', label: 'Seawater (SWS)' },
+    { value: 'nbs', label: 'NBS' },
     { value: 'free', label: 'Free' },
-    { value: 'nbs', label: 'NBS' }
+    { value: 'total', label: 'Total' },
+    { value: 'sws', label: 'Seawater (SWS)' }
   ]
 })
 </script>

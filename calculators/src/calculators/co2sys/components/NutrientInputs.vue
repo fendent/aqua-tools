@@ -15,10 +15,11 @@
           class="w-full px-3 py-2 border rounded-lg"
         />
         <select
-          v-model="phosphateUnit"
+          :value="phosphateUnit"
+          @input="$emit('update:phosphateUnit', $event.target.value)"
           class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
         >
-          <option value="µmol/kg">µmol/kg</option>
+          <option value="umol_kg">µmol/kg</option>
           <option value="ppb">ppb</option>
           <option value="ppm">ppm</option>
         </select>
@@ -43,10 +44,11 @@
           class="w-full px-3 py-2 border rounded-lg"
         />
         <select
-          v-model="silicateUnit"
+          :value="silicateUnit"
+          @input="$emit('update:silicateUnit', $event.target.value)"
           class="w-full px-3 py-2 border rounded-lg bg-white hover:bg-gray-50 transition-colors"
         >
-          <option value="µmol/kg">µmol/kg</option>
+          <option value="umol_kg">µmol/kg</option>
           <option value="ppb">ppb</option>
           <option value="ppm">ppm</option>
         </select>
@@ -65,51 +67,53 @@
 <script setup>
 import { computed } from 'vue'
 import { convertPhosphate, convertSilicate } from '../../../utils/carbonate/helpers/units.js'
-import { useLocalStorageRef } from '../../../composables/useLocalStorageRef.js'
 
 const props = defineProps({
   phosphate: { type: Number, required: true },
-  silicate: { type: Number, required: true }
+  silicate: { type: Number, required: true },
+  phosphateUnit: { type: String, required: true },
+  silicateUnit: { type: String, required: true }
 })
 
-const emit = defineEmits(['update:phosphate', 'update:silicate'])
-
-// Unit states with localStorage persistence
-const phosphateUnit = useLocalStorageRef('co2sys-phosphateUnit', 'µmol/kg')
-const silicateUnit = useLocalStorageRef('co2sys-silicateUnit', 'µmol/kg')
+const emit = defineEmits([
+  'update:phosphate',
+  'update:silicate',
+  'update:phosphateUnit',
+  'update:silicateUnit'
+])
 
 // Display values (converted from base units)
 const displayPhosphate = computed(() => {
-  return convertPhosphate(props.phosphate, 'µmol/kg', phosphateUnit.value)
+  return convertPhosphate(props.phosphate, 'umol_kg', props.phosphateUnit)
 })
 
 const displaySilicate = computed(() => {
-  return convertSilicate(props.silicate, 'µmol/kg', silicateUnit.value)
+  return convertSilicate(props.silicate, 'umol_kg', props.silicateUnit)
 })
 
 // Step sizes for inputs
 const getPhosphateStep = computed(() => {
-  if (phosphateUnit.value === 'ppm') return 0.0001
-  if (phosphateUnit.value === 'ppb') return 0.1
+  if (props.phosphateUnit === 'ppm') return 0.0001
+  if (props.phosphateUnit === 'ppb') return 0.1
   return 0.01
 })
 
 const getSilicateStep = computed(() => {
-  if (silicateUnit.value === 'ppm') return 0.001
-  if (silicateUnit.value === 'ppb') return 0.1
+  if (props.silicateUnit === 'ppm') return 0.001
+  if (props.silicateUnit === 'ppb') return 0.1
   return 0.1
 })
 
 // Input handlers (convert to base units before emitting)
 function handlePhosphateInput(event) {
   const displayValue = parseFloat(event.target.value) || 0
-  const baseValue = convertPhosphate(displayValue, phosphateUnit.value, 'µmol/kg')
+  const baseValue = convertPhosphate(displayValue, props.phosphateUnit, 'umol_kg')
   emit('update:phosphate', baseValue)
 }
 
 function handleSilicateInput(event) {
   const displayValue = parseFloat(event.target.value) || 0
-  const baseValue = convertSilicate(displayValue, silicateUnit.value, 'µmol/kg')
+  const baseValue = convertSilicate(displayValue, props.silicateUnit, 'umol_kg')
   emit('update:silicate', baseValue)
 }
 </script>

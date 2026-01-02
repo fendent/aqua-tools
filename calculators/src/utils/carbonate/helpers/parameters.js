@@ -113,9 +113,9 @@ export function validateParameter(paramType, value, unit) {
   // Convert to default unit for comparison
   let checkValue = value
   if (paramType === 'TA') {
-    checkValue = convertAlkalinity(value, unit, 'µmol/kg')
+    checkValue = convertAlkalinity(value, unit, 'umol_kg')
   } else if (['DIC', 'CO3', 'HCO3', 'aqCO2'].includes(paramType)) {
-    checkValue = convertConcentration(value, unit, 'µmol/kg')
+    checkValue = convertConcentration(value, unit, 'umol_kg')
   }
 
   const { min, max } = param.typical

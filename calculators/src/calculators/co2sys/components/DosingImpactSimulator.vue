@@ -767,14 +767,14 @@ const canSimulate = computed(() => {
 
 const displayCurrentAlk = computed(() => {
   // Convert from input unit to display unit
-  const valueInMicromol = convertAlkalinity(currentAlk.value, alkUnit.value, 'µmol/kg')
-  const valueInDisplayUnit = convertAlkalinity(valueInMicromol, 'µmol/kg', displayAlkUnit.value)
+  const valueInMicromol = convertAlkalinity(currentAlk.value, alkUnit.value, 'umol_kg')
+  const valueInDisplayUnit = convertAlkalinity(valueInMicromol, 'umol_kg', displayAlkUnit.value)
   return valueInDisplayUnit.toFixed(2)
 })
 
 const displayNewAlk = computed(() => {
   if (!simulationResults.value) return '—'
-  const newAlkInDisplayUnit = convertAlkalinity(simulationResults.value.newState.TA, 'µmol/kg', displayAlkUnit.value)
+  const newAlkInDisplayUnit = convertAlkalinity(simulationResults.value.newState.TA, 'umol_kg', displayAlkUnit.value)
   return newAlkInDisplayUnit.toFixed(2)
 })
 
@@ -807,9 +807,9 @@ function formatCalciumForDisplay(valueInPpm, unit) {
 
 // DIC unit options (still used in Carbonate Chemistry table)
 const dicUnitOptions = [
-  { value: 'µmol/kg', label: 'µmol/kg' },
-  { value: 'mmol/kg', label: 'mmol/kg' },
-  { value: 'mg/L', label: 'mg/L' }
+  { value: 'umol_kg', label: 'µmol/kg' },
+  { value: 'mmol_kg', label: 'mmol/kg' },
+  { value: 'mg_L', label: 'mg/L' }
 ]
 
 const displayDoseAmount = computed(() => {
@@ -880,11 +880,11 @@ const displayNewDIC = computed(() => {
 })
 
 function convertDIC(valueInMicromolPerKg, unit) {
-  if (unit === 'µmol/kg') {
+  if (unit === 'umol_kg') {
     return valueInMicromolPerKg.toFixed(0)
-  } else if (unit === 'mmol/kg') {
+  } else if (unit === 'mmol_kg') {
     return (valueInMicromolPerKg / 1000).toFixed(2)
-  } else if (unit === 'mg/L') {
+  } else if (unit === 'mg_L') {
     // Convert µmol/kg to mg/L (assuming molecular weight of C = 12)
     return (valueInMicromolPerKg * 12 / 1000).toFixed(1)
   }
@@ -1201,8 +1201,8 @@ function simulateImpact() {
       // Calculate dose amount from target change
       if (doseParameter.value === 'alkalinity') {
         const changeInBase = targetChangeUnit.value === 'dKH'
-          ? convertAlkalinity(targetChange.value, 'dKH', 'µmol/kg')
-          : convertAlkalinity(targetChange.value, 'meq/L', 'µmol/kg')
+          ? convertAlkalinity(targetChange.value, 'dKH', 'umol_kg')
+          : convertAlkalinity(targetChange.value, 'meq/L', 'umol_kg')
 
         newTA = currentTA + changeInBase
 
@@ -1210,7 +1210,7 @@ function simulateImpact() {
         if (selectedProduct.value || selectedChemical.value) {
           const tankVolumeGallons = convertVolume(tankVolumeBase.value, 'milliliters', 'gallons')
 
-          const alkChangeInDKH = convertAlkalinity(changeInBase, 'µmol/kg', 'dKH')
+          const alkChangeInDKH = convertAlkalinity(changeInBase, 'umol_kg', 'dKH')
 
           if (selectedProduct.value) {
             // Commercial product: use concentration directly
@@ -1286,7 +1286,7 @@ function simulateImpact() {
           dKHChange = (doseGrams * (selectedChemical.value.elementPercentage / 100)) / (tankVolumeGallons * elementFactor)
         }
 
-        const changeInMicromol = convertAlkalinity(dKHChange, 'dKH', 'µmol/kg')
+        const changeInMicromol = convertAlkalinity(dKHChange, 'dKH', 'umol_kg')
         newTA = currentTA + changeInMicromol
       } else if (doseParameter.value === 'calcium') {
         let ppmChange

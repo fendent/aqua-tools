@@ -400,7 +400,7 @@ function convertToInternalUnits(paramType, value, unit) {
   }
 
   if (['DIC', 'CO3', 'HCO3', 'aqCO2'].includes(paramType)) {
-    if (unit === 'mmol/kg') {
+    if (unit === 'mmol_kg') {
       return value * 1000
     }
     return value // Already in µmol/kg
